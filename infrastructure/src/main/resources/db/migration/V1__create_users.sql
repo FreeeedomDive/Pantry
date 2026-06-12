@@ -1,4 +1,3 @@
--- V1__create_users.sql
 CREATE TABLE users
 (
     id               uuid        PRIMARY KEY,
