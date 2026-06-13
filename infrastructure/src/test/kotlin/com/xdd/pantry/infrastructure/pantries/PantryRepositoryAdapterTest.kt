@@ -6,13 +6,13 @@ import com.xdd.pantry.domain.pantries.PantryId
 import com.xdd.pantry.domain.pantries.PantryMember
 import com.xdd.pantry.domain.pantries.PantryRole
 import com.xdd.pantry.domain.users.UserId
+import com.xdd.pantry.infrastructure.IntegrationTestsBase
 import com.xdd.pantry.infrastructure.users.UserEntity
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest
-import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection
 import org.springframework.context.annotation.Import
@@ -25,10 +25,9 @@ import java.util.UUID
 import kotlin.random.Random
 
 @DataJpaTest
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Import(PantryRepositoryAdapter::class)
 @Testcontainers
-class PantryRepositoryAdapterTest {
+class PantryRepositoryAdapterTest : IntegrationTestsBase() {
 
     companion object {
         @Container
@@ -69,7 +68,7 @@ class PantryRepositoryAdapterTest {
 
         pantries.getUserPantries(alice).map { it.name } shouldBe listOf("Общая квартира")
         pantries.getUserPantries(bob).map { it.name } shouldContainExactlyInAnyOrder
-            listOf("Общая квартира", "Квартира Боба")
+                listOf("Общая квартира", "Квартира Боба")
     }
 
     @Test
@@ -90,7 +89,7 @@ class PantryRepositoryAdapterTest {
         em.clear()
 
         pantries.getPantryMembers(pantry.id).map { it.userId } shouldContainExactlyInAnyOrder
-            listOf(alice, bob)
+                listOf(alice, bob)
     }
 
     @Test

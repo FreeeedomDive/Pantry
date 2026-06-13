@@ -6,6 +6,7 @@ import com.xdd.pantry.application.pantries.PantryRepository
 import com.xdd.pantry.application.users.RegisterUserUseCase
 import com.xdd.pantry.domain.pantries.PantryRole
 import com.xdd.pantry.domain.users.TelegramUserId
+import com.xdd.pantry.infrastructure.IntegrationTestsBase
 import com.xdd.pantry.infrastructure.pantries.PantryRepositoryAdapter
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
@@ -21,7 +22,6 @@ import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 
 @DataJpaTest
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Import(
     UserRepositoryAdapter::class,
     PantryRepositoryAdapter::class,
@@ -29,16 +29,7 @@ import org.testcontainers.junit.jupiter.Testcontainers
     CreateNewPantryUseCase::class,
     CreateDefaultPantryOnRegistration::class,
 )
-@Testcontainers
-class UserRegistrationFlowTest {
-
-    companion object {
-        @Container
-        @ServiceConnection
-        @JvmStatic
-        val postgres = PostgreSQLContainer<Nothing>("postgres:17-alpine")
-    }
-
+class UserRegistrationFlowTest : IntegrationTestsBase() {
     @Autowired
     private lateinit var registerUser: RegisterUserUseCase
 

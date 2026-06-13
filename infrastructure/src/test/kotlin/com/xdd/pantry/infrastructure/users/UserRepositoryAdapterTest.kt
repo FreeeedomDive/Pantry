@@ -4,6 +4,7 @@ import com.xdd.pantry.application.users.UserRepository
 import com.xdd.pantry.domain.users.TelegramUserId
 import com.xdd.pantry.domain.users.User
 import com.xdd.pantry.domain.users.UserId
+import com.xdd.pantry.infrastructure.IntegrationTestsBase
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import jakarta.persistence.PersistenceException
@@ -22,18 +23,8 @@ import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 @DataJpaTest
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Import(UserRepositoryAdapter::class)
-@Testcontainers
-class UserRepositoryAdapterTest {
-
-    companion object {
-        @Container
-        @ServiceConnection
-        @JvmStatic
-        val postgres = PostgreSQLContainer<Nothing>("postgres:17-alpine")
-    }
-
+class UserRepositoryAdapterTest : IntegrationTestsBase() {
     @Autowired
     private lateinit var users: UserRepository
 
@@ -70,8 +61,6 @@ class UserRepositoryAdapterTest {
     private fun newUser(telegramUserId: Long) = User(
         id = UserId(UUID.randomUUID()),
         telegramUserId = TelegramUserId(telegramUserId),
-        // Postgres хранит время с точностью до микросекунд, Instant.now() может
-        // дать наносекунды — без усечения сравнение после round-trip ложно падает.
         createdAt = Instant.now().truncatedTo(ChronoUnit.MICROS),
     )
 }
