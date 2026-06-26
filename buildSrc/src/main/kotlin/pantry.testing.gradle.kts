@@ -2,7 +2,6 @@ plugins {
     id("pantry.kotlin-common")
 }
 
-// Precompiled script plugins have no type-safe `libs` accessor — go through the extension.
 val libs = the<org.gradle.api.artifacts.VersionCatalogsExtension>().named("libs")
 
 dependencies {

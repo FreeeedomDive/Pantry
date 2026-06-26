@@ -72,6 +72,23 @@ class ProductRepositoryAdapterTest : IntegrationTestsBase() {
         products.getProduct(product.id).shouldBeNull()
     }
 
+    @Test
+    fun `save updates an existing product instead of inserting a duplicate`() {
+        val pantryId = newPantry()
+        val product = Product(ProductId(UUID.randomUUID()), pantryId, "Молоко", null)
+        products.save(product)
+        em.flush()
+        em.clear()
+
+        products.save(product.copy(name = "Кефир", brand = "Био"))
+        em.flush()
+        em.clear()
+
+        val updated = products.getProduct(product.id)!!
+        updated.name shouldBe "Кефир"
+        updated.brand shouldBe "Био"
+    }
+
     private fun newPantry(): PantryId {
         val id = UUID.randomUUID()
         em.persist(PantryEntity(id, "Дом", Instant.now()))

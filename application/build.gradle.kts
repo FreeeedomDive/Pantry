@@ -5,8 +5,6 @@ plugins {
 }
 
 dependencies {
-    // api: порты application принимают/возвращают доменные типы,
-    // значит domain — часть публичного API этого модуля.
     api(project(":domain"))
 
     implementation(libs.spring.context)

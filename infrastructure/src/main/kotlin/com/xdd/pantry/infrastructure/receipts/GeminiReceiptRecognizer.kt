@@ -25,7 +25,6 @@ class GeminiReceiptRecognizer(
         return parse(gemini.generateStructured(parts, SCHEMA))
     }
 
-    /** Разбор JSON по нашей схеме в доменную модель. internal — чтобы покрыть тестом без сети. */
     internal fun parse(json: String): RecognizedReceipt {
         val lines: List<RecognizedLineJson> = objectMapper.readValue(json)
         return RecognizedReceipt(

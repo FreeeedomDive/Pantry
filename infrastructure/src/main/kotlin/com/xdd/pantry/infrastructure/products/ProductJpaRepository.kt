@@ -6,6 +6,7 @@ import com.xdd.pantry.domain.products.Product
 import com.xdd.pantry.domain.products.ProductId
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
+import java.time.Instant
 import java.util.UUID
 
 interface ProductJpaRepository : JpaRepository<ProductEntity, UUID> {
@@ -17,7 +18,14 @@ class ProductRepositoryAdapter(
     private val jpa: ProductJpaRepository,
 ) : ProductRepository {
 
-    override fun save(product: Product): Product = jpa.save(product.toEntity()).toDomain()
+    override fun save(product: Product): Product {
+        val entity = jpa.findById(product.id.value).orElseGet {
+            ProductEntity(product.id.value, product.pantryId.value, product.name, product.brand, Instant.now())
+        }
+        entity.name = product.name
+        entity.brand = product.brand
+        return jpa.save(entity).toDomain()
+    }
 
     override fun getProduct(productId: ProductId): Product? =
         jpa.findById(productId.value).map { it.toDomain() }.orElse(null)
@@ -30,6 +38,3 @@ class ProductRepositoryAdapter(
 
 internal fun ProductEntity.toDomain() =
     Product(ProductId(id), PantryId(pantryId), name, brand)
-
-private fun Product.toEntity() =
-    ProductEntity(id.value, pantryId.value, name, brand, java.time.Instant.now())

@@ -105,7 +105,6 @@ class StockRepositoryAdapterTest : IntegrationTestsBase() {
         id = StockItemId(UUID.randomUUID()),
         productId = productId,
         quantity = Quantity(amount),
-        // timestamptz хранит микросекунды — усекаем, иначе round-trip-сравнение ложно падает
         purchasedAt = Instant.now().truncatedTo(ChronoUnit.MICROS),
         expiresAt = null,
     )
