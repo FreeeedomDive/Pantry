@@ -93,6 +93,34 @@ class ReceiptDraftRepositoryAdapterTest : IntegrationTestsBase() {
         drafts.getDraft(draft.id)!!.status shouldBe DraftStatus.CONFIRMED
     }
 
+    @Test
+    fun `replaceLines swaps all lines of a draft`() {
+        val pantryId = newPantry()
+        val draft = ReceiptDraft(
+            DraftId(UUID.randomUUID()), pantryId, DraftStatus.READY,
+            Instant.now().truncatedTo(ChronoUnit.MICROS),
+            listOf(
+                DraftLine(DraftLineId(UUID.randomUUID()), "СТАРОЕ 1", RecognizedAction.CREATE, null, "Старое 1", null, 1, Confidence.LOW),
+                DraftLine(DraftLineId(UUID.randomUUID()), "СТАРОЕ 2", RecognizedAction.CREATE, null, "Старое 2", null, 1, Confidence.LOW),
+            ),
+        )
+        drafts.save(draft)
+        em.flush()
+        em.clear()
+
+        drafts.replaceLines(
+            draft.id,
+            listOf(DraftLine(DraftLineId(UUID.randomUUID()), "НОВОЕ", RecognizedAction.CREATE, null, "Новое", null, 5, Confidence.HIGH)),
+        )
+        em.flush()
+        em.clear()
+
+        val reloaded = drafts.getDraft(draft.id)!!
+        reloaded.lines shouldHaveSize 1
+        reloaded.lines.single().rawText shouldBe "НОВОЕ"
+        reloaded.lines.single().quantity shouldBe 5
+    }
+
     private fun newPantry(): PantryId {
         val id = UUID.randomUUID()
         em.persist(PantryEntity(id, "Дом", Instant.now()))

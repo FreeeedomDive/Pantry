@@ -19,6 +19,7 @@ interface ReceiptDraftJpaRepository : JpaRepository<ReceiptDraftEntity, UUID>
 
 interface ReceiptDraftLineJpaRepository : JpaRepository<ReceiptDraftLineEntity, UUID> {
     fun findByDraftId(draftId: UUID): List<ReceiptDraftLineEntity>
+    fun deleteByDraftId(draftId: UUID)
 }
 
 @Repository
@@ -44,6 +45,13 @@ class ReceiptDraftRepositoryAdapter(
     override fun updateStatus(draftId: DraftId, status: DraftStatus) {
         val entity = drafts.findById(draftId.value).orElse(null) ?: return
         entity.status = status.name
+    }
+
+    @Transactional
+    override fun replaceLines(draftId: DraftId, newLines: List<DraftLine>): ReceiptDraft {
+        lines.deleteByDraftId(draftId.value)
+        lines.saveAll(newLines.map { it.toEntity(draftId) })
+        return getDraft(draftId) ?: error("Draft $draftId disappeared while replacing lines")
     }
 }
 
