@@ -32,6 +32,11 @@ class ConfirmReceiptDraftUseCase(
     private val aliases: ProductAliasRepository,
     private val accessGuard: PantryAccessGuard,
 ) {
+    fun confirmDraft(userId: UserId, draftId: DraftId) {
+        val draft = drafts.getDraft(draftId) ?: throw ReceiptDraftNotFoundException(draftId)
+        confirmDraft(userId, draft.pantryId, draftId)
+    }
+
     fun confirmDraft(userId: UserId, pantryId: PantryId, draftId: DraftId) {
         accessGuard.checkAccess(pantryId, userId)
         val draft = drafts.getDraft(draftId) ?: throw ReceiptDraftNotFoundException(draftId)

@@ -47,17 +47,27 @@ class GeminiReceiptRecognizer(
         val linesText = lines.joinToString("\n") { "${it.rawText}\t${it.quantity}" }
         val catalogText = catalog.joinToString("\n") { "${it.id.value}\t${it.name}\t${it.brand ?: ""}" }
         return """
-            You are given receipt lines (format: rawText<TAB>quantity) and the pantry product
-            catalog (format: id<TAB>name<TAB>brand). For each receipt line return an object per
-            the schema, preserving rawText and quantity exactly as given:
-            - confident match with the catalog → action=MATCH, productId from the catalog;
-            - not in the catalog → action=CREATE, proposedName (and proposedBrand if visible);
-            - unclear / non-item line (delivery, bag, tip) → action=UNSURE.
+            You are given receipt lines (rawText<TAB>quantity) and the pantry catalog
+            (id<TAB>name<TAB>brand). Return one object per receipt line, keeping rawText and
+            quantity exactly as given. Choose the action:
+            - MATCH (with productId): a catalog product is clearly the same item. Understand
+              abbreviations and OCR noise — "безлакт ультрапастер 1.8" is the same as
+              "молоко без лактозы ультрапастеризованное 1,8%". Match on product identity;
+              ignore brand and packaging-size differences.
+            - CREATE: a real product that is not in the catalog.
+            - UNSURE: not a product (bag, delivery, tip, discount, total).
+
+            For CREATE build a clean canonical name:
+            - proposedName: normal readable Russian, abbreviations expanded to full words,
+              no brand, no receipt codes or artifacts. Keep the distinguishing attributes
+              (type, flavor, fat %, "без лактозы").
+            - proposedBrand: the manufacturer brand if visible, otherwise null.
+
             confidence=HIGH only on an explicit match, otherwise LOW.
-        
+
             Receipt lines:
             $linesText
-        
+
             Catalog:
             $catalogText
         """.trimIndent()

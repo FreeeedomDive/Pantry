@@ -37,10 +37,13 @@ class GeminiReceiptExtractor(
     companion object {
         private val PROMPT = """
             You read a photo of a store receipt or a screenshot of a delivery order.
-            Extract EVERY line item: rawText is the item text exactly as written in the source
-            (keep the original language and spelling), quantity is the amount (use 1 if not stated).
-            Do not classify or match anything — just transcribe the items.
-            Skip totals, section headers, and non-item receipt formatting lines.
+            Extract every purchasable line item as { rawText, quantity }.
+            - rawText: the product name as printed, keeping brand and descriptive attributes
+              (flavor, fat %, weight, "без лактозы"). Keep the original language and spelling.
+              Drop receipt formatting that is not part of the product name: leading item/PLU
+              codes, trailing line codes (like ":8" or "%3") and section markers (like "<В>").
+            - quantity: the amount, or 1 if not stated.
+            Do not classify or match anything. Skip totals, discounts, section headers and payment lines.
         """.trimIndent()
 
         private val SCHEMA = mapOf(
