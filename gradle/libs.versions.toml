@@ -6,6 +6,7 @@ coroutines = "1.10.2"
 mockk = "1.13.13"
 kotest = "5.9.1"
 testcontainers = "1.21.3"
+telegrambots = "9.0.0"
 
 [libraries]
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
@@ -23,6 +24,10 @@ jackson-module-kotlin = { module = "tools.jackson.module:jackson-module-kotlin" 
 kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect" }
 spring-context = { module = "org.springframework:spring-context" }
 spring-tx = { module = "org.springframework:spring-tx" }
+spring-boot-docker-compose = { module = "org.springframework.boot:spring-boot-docker-compose" }
+
+telegrambots-longpolling = { module = "org.telegram:telegrambots-longpolling", version.ref = "telegrambots" }
+telegrambots-client = { module = "org.telegram:telegrambots-client", version.ref = "telegrambots" }
 
 kotlin-test-junit5 = { module = "org.jetbrains.kotlin:kotlin-test-junit5" }
 junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }

@@ -7,7 +7,7 @@ import com.xdd.pantry.domain.pantries.PantryId
 import com.xdd.pantry.domain.products.normalizeAlias
 import com.xdd.pantry.domain.receipts.Confidence
 import com.xdd.pantry.domain.receipts.ExtractedLine
-import com.xdd.pantry.domain.receipts.ReceiptImage
+import com.xdd.pantry.domain.receipts.ExtractedReceipt
 import com.xdd.pantry.domain.receipts.RecognizedAction
 import com.xdd.pantry.domain.receipts.RecognizedLine
 import com.xdd.pantry.domain.receipts.RecognizedReceipt
@@ -18,23 +18,16 @@ import org.springframework.stereotype.Service
 
 @Service
 class RecognizeReceiptUseCase(
-    private val extractor: ReceiptExtractor,
     private val recognizer: ReceiptRecognizer,
     private val products: ProductRepository,
     private val aliases: ProductAliasRepository,
     private val accessGuard: PantryAccessGuard,
 ) {
-    suspend fun recognizeReceipt(
-        userId: UserId,
-        pantryId: PantryId,
-        images: List<ReceiptImage>,
-    ): RecognizedReceipt {
-        withContext(Dispatchers.IO) { accessGuard.checkAccess(pantryId, userId) }
-
-        val extracted = extractor.extract(images)
+    suspend fun recognize(userId: UserId, pantryId: PantryId, extracted: ExtractedReceipt): RecognizedReceipt {
         if (extracted.lines.isEmpty()) return RecognizedReceipt(emptyList())
 
         val (aliasMap, catalog) = withContext(Dispatchers.IO) {
+            accessGuard.checkAccess(pantryId, userId)
             val aliasMap = aliases.getPantryAliases(pantryId).associate { it.alias to it.productId }
             aliasMap to products.getPantryProducts(pantryId)
         }

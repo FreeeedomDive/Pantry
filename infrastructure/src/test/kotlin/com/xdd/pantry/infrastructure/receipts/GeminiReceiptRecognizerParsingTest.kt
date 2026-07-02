@@ -15,6 +15,7 @@ class GeminiReceiptRecognizerParsingTest {
 
     private val recognizer = GeminiReceiptRecognizer(
         gemini = mockk(),
+        geminiProperties = GeminiProperties(recognizerApiKey = "test", extractorApiKey = "test"),
         objectMapper = jacksonObjectMapper(),
     )
 

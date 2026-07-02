@@ -12,7 +12,6 @@ import com.xdd.pantry.domain.products.ProductId
 import com.xdd.pantry.domain.receipts.Confidence
 import com.xdd.pantry.domain.receipts.ExtractedLine
 import com.xdd.pantry.domain.receipts.ExtractedReceipt
-import com.xdd.pantry.domain.receipts.ReceiptImage
 import com.xdd.pantry.domain.receipts.RecognizedAction
 import com.xdd.pantry.domain.receipts.RecognizedLine
 import com.xdd.pantry.domain.receipts.RecognizedReceipt
@@ -31,46 +30,43 @@ import java.util.UUID
 
 class RecognizeReceiptUseCaseTest {
 
-    private val extractor = mockk<ReceiptExtractor>()
     private val recognizer = mockk<ReceiptRecognizer>()
     private val products = mockk<ProductRepository>(relaxed = true)
     private val aliases = mockk<ProductAliasRepository>()
     private val guard = mockk<PantryAccessGuard>()
-    private val useCase = RecognizeReceiptUseCase(extractor, recognizer, products, aliases, guard)
+    private val useCase = RecognizeReceiptUseCase(recognizer, products, aliases, guard)
 
     private val pantryId = PantryId(UUID.randomUUID())
     private val userId = UserId(UUID.randomUUID())
-    private val images = listOf(ReceiptImage("image/jpeg", byteArrayOf(1, 2, 3)))
 
     @Test
     fun `matches lines locally via aliases without calling the recognizer`() = runTest {
         val milkId = ProductId(UUID.randomUUID())
         every { guard.checkAccess(pantryId, userId, false) } returns member()
-        coEvery { extractor.extract(images) } returns ExtractedReceipt(listOf(ExtractedLine("Молоко 3.2", 1)))
         every { aliases.getPantryAliases(pantryId) } returns listOf(ProductAlias(pantryId, "МОЛОКО 3.2", milkId))
 
-        val result = useCase.recognizeReceipt(userId, pantryId, images)
+        val result = useCase.recognize(userId, pantryId, ExtractedReceipt(listOf(ExtractedLine("Молоко 3.2", 1))))
 
         result.lines shouldHaveSize 1
         result.lines.single().action shouldBe RecognizedAction.MATCH
         result.lines.single().productId shouldBe milkId
-        result.lines.single().confidence shouldBe Confidence.HIGH
         coVerify(exactly = 0) { recognizer.recognize(any(), any()) }
     }
 
     @Test
     fun `sends only alias-miss lines to the recognizer`() = runTest {
-        every { guard.checkAccess(pantryId, userId, false) } returns member()
         val knownId = ProductId(UUID.randomUUID())
-        coEvery { extractor.extract(images) } returns ExtractedReceipt(
-            listOf(ExtractedLine("МОЛОКО 3.2", 1), ExtractedLine("НЕЧТО НОВОЕ", 2)),
-        )
+        every { guard.checkAccess(pantryId, userId, false) } returns member()
         every { aliases.getPantryAliases(pantryId) } returns listOf(ProductAlias(pantryId, "МОЛОКО 3.2", knownId))
         coEvery { recognizer.recognize(any(), any()) } returns RecognizedReceipt(
             listOf(RecognizedLine("НЕЧТО НОВОЕ", RecognizedAction.CREATE, null, "Нечто новое", null, 2, Confidence.LOW)),
         )
 
-        val result = useCase.recognizeReceipt(userId, pantryId, images)
+        val result = useCase.recognize(
+            userId,
+            pantryId,
+            ExtractedReceipt(listOf(ExtractedLine("МОЛОКО 3.2", 1), ExtractedLine("НЕЧТО НОВОЕ", 2))),
+        )
 
         result.lines shouldHaveSize 2
         result.lines.first { it.action == RecognizedAction.MATCH }.productId shouldBe knownId
@@ -79,24 +75,21 @@ class RecognizeReceiptUseCaseTest {
     }
 
     @Test
-    fun `does not call the recognizer when extraction is empty`() = runTest {
-        every { guard.checkAccess(pantryId, userId, false) } returns member()
-        coEvery { extractor.extract(images) } returns ExtractedReceipt(emptyList())
-
-        useCase.recognizeReceipt(userId, pantryId, images).lines shouldHaveSize 0
+    fun `returns empty result without touching data for empty extraction`() = runTest {
+        useCase.recognize(userId, pantryId, ExtractedReceipt(emptyList())).lines shouldHaveSize 0
 
         coVerify(exactly = 0) { recognizer.recognize(any(), any()) }
     }
 
     @Test
-    fun `denies and does not extract when user is not a member`() = runTest {
+    fun `denies when user is not a member`() = runTest {
         every { guard.checkAccess(pantryId, userId, false) } throws PantryActionDeniedException(userId, pantryId)
 
         shouldThrow<PantryActionDeniedException> {
-            useCase.recognizeReceipt(userId, pantryId, images)
+            useCase.recognize(userId, pantryId, ExtractedReceipt(listOf(ExtractedLine("МОЛОКО", 1))))
         }
 
-        coVerify(exactly = 0) { extractor.extract(any()) }
+        coVerify(exactly = 0) { recognizer.recognize(any(), any()) }
     }
 
     private fun member() = PantryMember(pantryId, userId, PantryRole.MEMBER, Instant.now())

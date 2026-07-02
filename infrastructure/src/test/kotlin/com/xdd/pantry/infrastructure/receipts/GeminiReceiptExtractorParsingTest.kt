@@ -10,6 +10,7 @@ class GeminiReceiptExtractorParsingTest {
 
     private val extractor = GeminiReceiptExtractor(
         gemini = mockk(),
+        geminiProperties = GeminiProperties(recognizerApiKey = "test", extractorApiKey = "test"),
         objectMapper = jacksonObjectMapper(),
     )
 

@@ -16,13 +16,14 @@ import java.util.UUID
 @Component
 class GeminiReceiptRecognizer(
     private val gemini: GeminiClient,
+    private val geminiProperties: GeminiProperties,
     private val objectMapper: ObjectMapper,
 ) : ReceiptRecognizer {
 
     override suspend fun recognize(lines: List<ExtractedLine>, catalog: List<Product>): RecognizedReceipt {
         if (lines.isEmpty()) return RecognizedReceipt(emptyList())
         val parts = listOf(mapOf<String, Any>("text" to buildPrompt(lines, catalog)))
-        return parse(gemini.generateStructured(parts, SCHEMA))
+        return parse(gemini.generateStructured(parts, SCHEMA, geminiProperties.recognizerApiKey))
     }
 
     internal fun parse(json: String): RecognizedReceipt {

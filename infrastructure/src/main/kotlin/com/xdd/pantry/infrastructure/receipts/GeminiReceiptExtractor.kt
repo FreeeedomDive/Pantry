@@ -12,13 +12,14 @@ import java.util.Base64
 @Component
 class GeminiReceiptExtractor(
     private val gemini: GeminiClient,
+    private val geminiProperties: GeminiProperties,
     private val objectMapper: ObjectMapper,
 ) : ReceiptExtractor {
 
     override suspend fun extract(images: List<ReceiptImage>): ExtractedReceipt {
         if (images.isEmpty()) return ExtractedReceipt(emptyList())
         val parts = images.map { imagePart(it) } + mapOf<String, Any>("text" to PROMPT)
-        return parse(gemini.generateStructured(parts, SCHEMA))
+        return parse(gemini.generateStructured(parts, SCHEMA, geminiProperties.extractorApiKey))
     }
 
     internal fun parse(json: String): ExtractedReceipt {
