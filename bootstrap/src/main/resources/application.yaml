@@ -8,3 +8,12 @@ spring:
     hibernate:
       ddl-auto: validate
     open-in-view: false
+  rabbitmq:
+    listener:
+      simple:
+        concurrency: 1
+        default-requeue-rejected: false
+        retry:
+          enabled: true
+          initial-interval: 3s
+          max-retries: 3

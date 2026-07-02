@@ -11,6 +11,7 @@ dependencies {
 
     implementation(libs.spring.boot.starter.webmvc)
     implementation(libs.spring.boot.starter.validation)
+    implementation(libs.spring.boot.starter.amqp)
     implementation(libs.jackson.module.kotlin)
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.telegrambots.longpolling)
