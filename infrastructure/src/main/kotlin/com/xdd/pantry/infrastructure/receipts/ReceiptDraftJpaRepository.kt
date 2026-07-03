@@ -70,6 +70,7 @@ private fun ReceiptDraftLineEntity.toDomain() = DraftLine(
     proposedBrand = proposedBrand,
     quantity = quantity,
     confidence = Confidence.valueOf(confidence),
+    expiresAt = expiresAt,
 )
 
 private fun DraftLine.toEntity(draftId: DraftId) = ReceiptDraftLineEntity(
@@ -82,4 +83,5 @@ private fun DraftLine.toEntity(draftId: DraftId) = ReceiptDraftLineEntity(
     proposedBrand = proposedBrand,
     quantity = quantity,
     confidence = confidence.name,
+    expiresAt = expiresAt,
 )

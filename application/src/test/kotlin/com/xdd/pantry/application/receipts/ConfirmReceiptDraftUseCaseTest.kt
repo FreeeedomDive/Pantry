@@ -29,6 +29,7 @@ import io.mockk.mockk
 import io.mockk.verify
 import org.junit.jupiter.api.Test
 import java.time.Instant
+import java.time.LocalDate
 import java.util.UUID
 
 class ConfirmReceiptDraftUseCaseTest {
@@ -44,12 +45,13 @@ class ConfirmReceiptDraftUseCaseTest {
     private val userId = UserId(UUID.randomUUID())
     private val draftId = DraftId(UUID.randomUUID())
     private val milkId = ProductId(UUID.randomUUID())
+    private val milkExpiry = LocalDate.of(2026, 7, 20)
 
     @Test
     fun `applies lines to stock, learns aliases and confirms the draft`() {
         every { guard.checkAccess(pantryId, userId, false) } returns member()
         every { drafts.getDraft(draftId) } returns draft(
-            line("МОЛОКО 3.2", RecognizedAction.MATCH, productId = milkId, quantity = 1),
+            line("МОЛОКО 3.2", RecognizedAction.MATCH, productId = milkId, quantity = 1, expiresAt = milkExpiry),
             line("ХЛЕБ", RecognizedAction.CREATE, proposedName = "Хлеб", quantity = 2),
             line("ПАКЕТ", RecognizedAction.UNSURE, quantity = 1),
         )
@@ -62,7 +64,9 @@ class ConfirmReceiptDraftUseCaseTest {
         useCase.confirmDraft(userId, pantryId, draftId)
 
         verify(exactly = 2) { stock.save(any<StockItem>()) }
-        verify(exactly = 1) { stock.save(match<StockItem> { it.productId == milkId && it.quantity == Quantity(1) }) }
+        verify(exactly = 1) {
+            stock.save(match<StockItem> { it.productId == milkId && it.quantity == Quantity(1) && it.expiresAt == milkExpiry })
+        }
         verify(exactly = 1) { products.save(match<Product> { it.name == "Хлеб" && it.pantryId == pantryId }) }
         verify(exactly = 2) { aliases.save(any<ProductAlias>()) }
         verify(exactly = 1) { drafts.updateStatus(draftId, DraftStatus.CONFIRMED) }
@@ -117,5 +121,6 @@ class ConfirmReceiptDraftUseCaseTest {
         productId: ProductId? = null,
         proposedName: String? = null,
         quantity: Int = 1,
-    ) = DraftLine(DraftLineId(UUID.randomUUID()), rawText, action, productId, proposedName, null, quantity, Confidence.HIGH)
+        expiresAt: LocalDate? = null,
+    ) = DraftLine(DraftLineId(UUID.randomUUID()), rawText, action, productId, proposedName, null, quantity, Confidence.HIGH, expiresAt)
 }

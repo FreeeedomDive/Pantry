@@ -56,7 +56,7 @@ class ConfirmReceiptDraftUseCase(
             }
 
             if (line.quantity > 0) {
-                stock.save(StockItem(StockItemId(UUID.randomUUID()), productId, Quantity(line.quantity), Instant.now(), null))
+                stock.save(StockItem(StockItemId(UUID.randomUUID()), productId, Quantity(line.quantity), Instant.now(), line.expiresAt))
             }
 
             val alias = normalizeAlias(line.rawText)

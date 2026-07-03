@@ -1,7 +1,6 @@
 package com.xdd.pantry.bootstrap.web
 
 import com.xdd.pantry.application.users.RegisterUserUseCase
-import com.xdd.pantry.domain.users.UserId
 import org.springframework.core.MethodParameter
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
@@ -11,6 +10,7 @@ import org.springframework.web.context.request.NativeWebRequest
 import org.springframework.web.method.support.HandlerMethodArgumentResolver
 import org.springframework.web.method.support.ModelAndViewContainer
 import org.springframework.web.server.ResponseStatusException
+import java.util.UUID
 
 @Target(AnnotationTarget.VALUE_PARAMETER)
 @Retention(AnnotationRetention.RUNTIME)
@@ -23,14 +23,14 @@ class CurrentUserArgumentResolver(
 ) : HandlerMethodArgumentResolver {
 
     override fun supportsParameter(parameter: MethodParameter): Boolean =
-        parameter.hasParameterAnnotation(CurrentUser::class.java) && parameter.parameterType == UserId::class.java
+        parameter.hasParameterAnnotation(CurrentUser::class.java) && parameter.parameterType == UUID::class.java
 
     override fun resolveArgument(
         parameter: MethodParameter,
         mavContainer: ModelAndViewContainer?,
         webRequest: NativeWebRequest,
         binderFactory: WebDataBinderFactory?,
-    ): UserId {
+    ): UUID {
         val header = webRequest.getHeader(HttpHeaders.AUTHORIZATION)
             ?: throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "Missing Authorization header")
         val telegramUserId = try {
@@ -38,6 +38,6 @@ class CurrentUserArgumentResolver(
         } catch (invalid: InvalidInitDataException) {
             throw ResponseStatusException(HttpStatus.UNAUTHORIZED, invalid.message)
         }
-        return registerUser.findOrRegister(telegramUserId).id
+        return registerUser.findOrRegister(telegramUserId).id.value
     }
 }

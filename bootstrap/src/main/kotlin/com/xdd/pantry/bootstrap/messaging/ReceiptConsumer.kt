@@ -40,7 +40,7 @@ class ReceiptConsumer(
         sender.send(receipt.chatId, formatRecognized(recognized))
 
         val draft = createReceiptDraft.createDraft(pantry.id, recognized)
-        sender.sendWithConfirm(receipt.chatId, "Черновик готов: ${draft.lines.size} позиц.", draft.id)
+        sender.sendDraftLink(receipt.chatId, "Черновик готов: ${draft.lines.size} позиц.", pantry.id, draft.id)
     }
 
     private fun formatExtracted(receipt: ExtractedReceipt): String =

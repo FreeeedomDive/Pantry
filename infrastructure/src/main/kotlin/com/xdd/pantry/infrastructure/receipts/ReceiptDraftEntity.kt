@@ -6,6 +6,7 @@ import jakarta.persistence.Id
 import jakarta.persistence.Table
 import jakarta.persistence.Version
 import java.time.Instant
+import java.time.LocalDate
 import java.util.UUID
 
 @Entity
@@ -30,5 +31,6 @@ class ReceiptDraftLineEntity(
     @Column(name = "proposed_brand") var proposedBrand: String?,
     @Column(name = "quantity", nullable = false) var quantity: Int,
     @Column(name = "confidence", nullable = false) var confidence: String,
+    @Column(name = "expires_at") var expiresAt: LocalDate?,
     @Version var version: Long? = null,
 )

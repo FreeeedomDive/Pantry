@@ -37,6 +37,7 @@ class UpdateReceiptDraftUseCase(
                 proposedBrand = line.proposedBrand,
                 quantity = line.quantity,
                 confidence = line.confidence,
+                expiresAt = line.expiresAt,
             )
         }
         return drafts.replaceLines(draftId, lines)

@@ -8,13 +8,15 @@ services:
     ports:
       - "55432:5432"
     volumes:
-      - pantry_pgdata:/var/lib/postgresql/data
+      - pantry_postgresql:/var/lib/postgresql/data
 
   rabbitmq:
     image: rabbitmq:4-management-alpine
     ports:
       - "55672:5672"
       - "15672:15672"
+    volumes:
+      - pantry_rabbitmq:/var/lib/rabbitmq/mnesia
 
   nginx:
     image: nginx:alpine
@@ -26,4 +28,5 @@ services:
       - "host.docker.internal:host-gateway"
 
 volumes:
-  pantry_pgdata:
+  pantry_postgresql:
+  pantry_rabbitmq:

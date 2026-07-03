@@ -28,6 +28,7 @@ data class DraftLineResponse(
     val proposedBrand: String?,
     val quantity: Int,
     val confidence: String,
+    val expiresAt: LocalDate?,
 )
 data class DraftResponse(val id: UUID, val pantryId: UUID, val status: String, val lines: List<DraftLineResponse>)
 
@@ -43,6 +44,7 @@ data class DraftLineInput(
     val proposedName: String?,
     val proposedBrand: String?,
     val quantity: Int,
+    val expiresAt: LocalDate?,
 )
 data class UpdateDraftRequest(val lines: List<DraftLineInput>)
 
@@ -56,6 +58,7 @@ fun UpdateDraftRequest.toRecognizedReceipt() = RecognizedReceipt(
             proposedBrand = line.proposedBrand,
             quantity = line.quantity,
             confidence = Confidence.HIGH,
+            expiresAt = line.expiresAt,
         )
     },
 )
@@ -65,6 +68,6 @@ fun Product.toResponse() = ProductResponse(id.value, name, brand)
 fun ProductBalance.toResponse() = ProductBalanceResponse(product.toResponse(), total)
 fun StockItem.toResponse() = StockItemResponse(id.value, quantity.value, purchasedAt, expiresAt)
 fun DraftLine.toResponse() = DraftLineResponse(
-    id.value, rawText, action.name, productId?.value, proposedName, proposedBrand, quantity, confidence.name,
+    id.value, rawText, action.name, productId?.value, proposedName, proposedBrand, quantity, confidence.name, expiresAt,
 )
 fun ReceiptDraft.toResponse() = DraftResponse(id.value, pantryId.value, status.name, lines.map { it.toResponse() })

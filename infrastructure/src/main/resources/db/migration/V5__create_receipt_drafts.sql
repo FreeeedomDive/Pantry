@@ -19,6 +19,7 @@ CREATE TABLE receipt_draft_lines
     proposed_brand text,
     quantity       int  NOT NULL,
     confidence     text NOT NULL,
+    expires_at     date,
     version        bigint NOT NULL
 );
 CREATE INDEX ix_receipt_draft_lines_draft_id ON receipt_draft_lines (draft_id);

@@ -3,6 +3,7 @@ package com.xdd.pantry.domain.receipts
 import com.xdd.pantry.domain.pantries.PantryId
 import com.xdd.pantry.domain.products.ProductId
 import java.time.Instant
+import java.time.LocalDate
 import java.util.UUID
 
 @JvmInline value class DraftId(val value: UUID)
@@ -19,6 +20,7 @@ data class DraftLine(
     val proposedBrand: String?,
     val quantity: Int,
     val confidence: Confidence,
+    val expiresAt: LocalDate? = null,
 )
 
 data class ReceiptDraft(
@@ -45,6 +47,7 @@ data class ReceiptDraft(
                         proposedBrand = line.proposedBrand,
                         quantity = line.quantity,
                         confidence = line.confidence,
+                        expiresAt = line.expiresAt,
                     )
                 },
             )
