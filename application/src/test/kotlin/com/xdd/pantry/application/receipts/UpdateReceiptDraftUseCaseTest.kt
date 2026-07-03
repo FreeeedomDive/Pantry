@@ -24,6 +24,7 @@ import io.mockk.slot
 import io.mockk.verify
 import org.junit.jupiter.api.Test
 import java.time.Instant
+import java.time.LocalDate
 import java.util.UUID
 
 class UpdateReceiptDraftUseCaseTest {
@@ -43,14 +44,16 @@ class UpdateReceiptDraftUseCaseTest {
         val newLines = slot<List<DraftLine>>()
         every { drafts.replaceLines(draftId, capture(newLines)) } answers { readyDraft() }
 
+        val expiry = LocalDate.of(2026, 7, 20)
         val edited = RecognizedReceipt(
-            listOf(RecognizedLine("Молоко", RecognizedAction.CREATE, null, "Молоко", null, 3, Confidence.HIGH)),
+            listOf(RecognizedLine("Молоко", RecognizedAction.CREATE, null, "Молоко", null, 3, Confidence.HIGH, expiry)),
         )
         useCase.updateDraft(userId, pantryId, draftId, edited)
 
         newLines.captured shouldHaveSize 1
         newLines.captured.single().proposedName shouldBe "Молоко"
         newLines.captured.single().quantity shouldBe 3
+        newLines.captured.single().expiresAt shouldBe expiry
     }
 
     @Test
