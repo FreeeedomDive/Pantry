@@ -1,0 +1,63 @@
+export interface PantryResponse {
+  id: string
+  name: string
+}
+
+export interface ProductResponse {
+  id: string
+  name: string
+  brand: string | null
+}
+
+export interface ProductBalanceResponse {
+  product: ProductResponse
+  total: number
+}
+
+export interface StockItemResponse {
+  id: string
+  quantity: number
+  purchasedAt: string
+  expiresAt: string | null
+}
+
+export type DraftStatus = 'PENDING' | 'READY' | 'CONFIRMED' | 'FAILED'
+export type DraftLineAction = 'MATCH' | 'CREATE' | 'UNSURE'
+export type Confidence = 'HIGH' | 'LOW'
+
+export interface DraftLineResponse {
+  id: string
+  rawText: string
+  action: DraftLineAction
+  productId: string | null
+  proposedName: string | null
+  proposedBrand: string | null
+  quantity: number
+  confidence: Confidence
+  expiresAt: string | null
+}
+
+export interface DraftResponse {
+  id: string
+  pantryId: string
+  status: DraftStatus
+  lines: DraftLineResponse[]
+}
+
+export interface DraftLineInput {
+  rawText: string
+  action: DraftLineAction
+  productId: string | null
+  proposedName: string | null
+  proposedBrand: string | null
+  quantity: number
+  expiresAt: string | null
+}
+
+export interface UpdateDraftRequest {
+  lines: DraftLineInput[]
+}
+
+export interface CreatePantryRequest {
+  name: string
+}
