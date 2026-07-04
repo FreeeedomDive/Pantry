@@ -1,6 +1,6 @@
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from './http'
-import type { PantryResponse } from './types'
+import type { InviteResponse, PantryMemberResponse, PantryResponse } from './types'
 
 export function usePantries() {
   return useQuery({
@@ -14,5 +14,38 @@ export function usePantry(pantryId: string) {
     queryKey: ['pantries'],
     queryFn: () => api.get<PantryResponse[]>('/pantries'),
     select: (pantries) => pantries.find((pantry) => pantry.id === pantryId),
+  })
+}
+
+export function useCreatePantry() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (name: string) => api.post<PantryResponse>('/pantries', { name }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['pantries'] })
+    },
+  })
+}
+
+export function useRenamePantry(pantryId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (name: string) => api.patch<PantryResponse>(`/pantries/${pantryId}`, { name }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['pantries'] })
+    },
+  })
+}
+
+export function usePantryMembers(pantryId: string) {
+  return useQuery({
+    queryKey: ['pantries', pantryId, 'members'],
+    queryFn: () => api.get<PantryMemberResponse[]>(`/pantries/${pantryId}/members`),
+  })
+}
+
+export function useCreateInvite(pantryId: string) {
+  return useMutation({
+    mutationFn: () => api.post<InviteResponse>(`/pantries/${pantryId}/invites`),
   })
 }

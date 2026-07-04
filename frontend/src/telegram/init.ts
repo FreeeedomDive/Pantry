@@ -1,10 +1,11 @@
-import { backButton, init, miniApp, viewport } from '@telegram-apps/sdk-react'
+import { backButton, init, initData, miniApp, viewport } from '@telegram-apps/sdk-react'
 import { mockTelegramEnvForDev } from './mockEnv'
 
 export function initTelegram() {
   mockTelegramEnvForDev()
   try {
     init()
+    initData.restore()
     if (miniApp.mountSync.isAvailable()) miniApp.mountSync()
     if (backButton.mount.isAvailable()) backButton.mount()
     if (viewport.mount.isAvailable()) {

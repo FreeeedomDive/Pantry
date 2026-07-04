@@ -1,6 +1,20 @@
+export type PantryRole = 'OWNER' | 'MEMBER'
+
 export interface PantryResponse {
   id: string
   name: string
+  role: PantryRole
+}
+
+export interface PantryMemberResponse {
+  telegramUserId: number
+  role: PantryRole
+  joinedAt: string
+}
+
+export interface InviteResponse {
+  link: string
+  expiresAt: string
 }
 
 export interface ProductResponse {

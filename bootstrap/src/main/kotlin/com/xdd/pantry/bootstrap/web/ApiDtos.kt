@@ -1,6 +1,9 @@
 package com.xdd.pantry.bootstrap.web
 
+import com.xdd.pantry.application.pantries.PantryMemberInfo
+import com.xdd.pantry.application.pantries.UserPantry
 import com.xdd.pantry.domain.pantries.Pantry
+import com.xdd.pantry.domain.pantries.PantryRole
 import com.xdd.pantry.domain.products.Product
 import com.xdd.pantry.domain.products.ProductBalance
 import com.xdd.pantry.domain.products.ProductId
@@ -15,7 +18,7 @@ import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
 
-data class PantryResponse(val id: UUID, val name: String)
+data class PantryResponse(val id: UUID, val name: String, val role: String)
 data class ProductResponse(val id: UUID, val name: String, val brand: String?)
 data class ProductBalanceResponse(val product: ProductResponse, val total: Int)
 data class StockItemResponse(val id: UUID, val quantity: Int, val purchasedAt: Instant, val expiresAt: LocalDate?)
@@ -32,7 +35,11 @@ data class DraftLineResponse(
 )
 data class DraftResponse(val id: UUID, val pantryId: UUID, val status: String, val lines: List<DraftLineResponse>)
 
+data class PantryMemberResponse(val telegramUserId: Long, val role: String, val joinedAt: Instant)
+data class InviteResponse(val link: String, val expiresAt: Instant)
+
 data class CreatePantryRequest(val name: String)
+data class RenamePantryRequest(val name: String)
 data class AddProductRequest(val name: String, val brand: String?)
 data class RenameProductRequest(val name: String, val brand: String?)
 data class AddStockRequest(val quantity: Int, val expiresAt: LocalDate?)
@@ -63,7 +70,9 @@ fun UpdateDraftRequest.toRecognizedReceipt() = RecognizedReceipt(
     },
 )
 
-fun Pantry.toResponse() = PantryResponse(id.value, name)
+fun Pantry.toResponse(role: PantryRole) = PantryResponse(id.value, name, role.name)
+fun UserPantry.toResponse() = pantry.toResponse(role)
+fun PantryMemberInfo.toResponse() = PantryMemberResponse(telegramUserId.value, role.name, joinedAt)
 fun Product.toResponse() = ProductResponse(id.value, name, brand)
 fun ProductBalance.toResponse() = ProductBalanceResponse(product.toResponse(), total)
 fun StockItem.toResponse() = StockItemResponse(id.value, quantity.value, purchasedAt, expiresAt)

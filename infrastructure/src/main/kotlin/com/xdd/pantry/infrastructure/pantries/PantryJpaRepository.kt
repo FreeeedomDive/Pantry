@@ -25,6 +25,7 @@ interface PantryJpaRepository : JpaRepository<PantryEntity, UUID> {
 
 interface PantryMemberJpaRepository : JpaRepository<PantryMemberEntity, PantryMemberKey> {
     fun findByIdPantryId(pantryId: UUID): List<PantryMemberEntity>
+    fun findByIdUserId(userId: UUID): List<PantryMemberEntity>
 }
 
 @Repository
@@ -51,10 +52,22 @@ class PantryRepositoryAdapter(
         return pantryMembers.findByIdPantryId(pantryId.value).map { it.toDomain() }
     }
 
+    override fun getUserMemberships(userId: UserId): List<PantryMember> {
+        return pantryMembers.findByIdUserId(userId.value).map { it.toDomain() }
+    }
+
     override fun save(pantry: Pantry): Pantry = pantries.save(pantry.toEntity()).toDomain()
 
     override fun save(newMember: PantryMember): PantryMember {
         return pantryMembers.save(newMember.toEntity()).toDomain()
+    }
+
+    override fun rename(pantryId: PantryId, newName: String) {
+        val current = pantries.findById(pantryId.value)
+        current.ifPresent {
+            it.name = newName
+            pantries.save(it)
+        }
     }
 
     override fun updateRole(

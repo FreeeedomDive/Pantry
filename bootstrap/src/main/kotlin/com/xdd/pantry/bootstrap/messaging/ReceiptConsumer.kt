@@ -29,7 +29,7 @@ class ReceiptConsumer(
     @RabbitListener(queues = [RabbitConfig.QUEUE])
     fun onReceipt(receipt: ReceiptSubmitted) = runBlocking {
         val user = registerUser.findOrRegister(TelegramUserId(receipt.telegramUserId))
-        val pantry = getUserPantries.getUserPantries(user.id).first()
+        val pantry = getUserPantries.getUserPantries(user.id).first().pantry
         val images = receipt.fileIds.map { ReceiptImage(JPEG_MIME_TYPE, telegramFiles.download(it)) }
 
         val extracted = extractor.extract(images)

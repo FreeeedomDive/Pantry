@@ -1,5 +1,6 @@
 import { createBrowserRouter } from 'react-router'
 import { DraftPage } from '../pages/DraftPage'
+import { MembersPage } from '../pages/MembersPage'
 import { PantriesPage } from '../pages/PantriesPage'
 import { PantryPage } from '../pages/PantryPage'
 import { ProductPage } from '../pages/ProductPage'
@@ -13,6 +14,7 @@ export const router = createBrowserRouter([
       { path: '/pantries/:pantryId', element: <PantryPage /> },
       { path: '/pantries/:pantryId/products/:productId', element: <ProductPage /> },
       { path: '/pantries/:pantryId/drafts/:draftId', element: <DraftPage /> },
+      { path: '/pantries/:pantryId/members', element: <MembersPage /> },
     ],
   },
 ])

@@ -1,7 +1,10 @@
 package com.xdd.pantry.bootstrap.telegram
 
+import com.xdd.pantry.application.pantries.AcceptInviteResult
+import com.xdd.pantry.application.pantries.AcceptPantryInviteUseCase
 import com.xdd.pantry.bootstrap.messaging.ReceiptPublisher
 import com.xdd.pantry.bootstrap.messaging.ReceiptSubmitted
+import com.xdd.pantry.domain.users.TelegramUserId
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -10,12 +13,14 @@ import org.springframework.stereotype.Component
 import org.telegram.telegrambots.longpolling.util.LongPollingSingleThreadUpdateConsumer
 import org.telegram.telegrambots.meta.api.objects.Update
 import org.telegram.telegrambots.meta.api.objects.message.Message
+import java.util.UUID
 import kotlin.time.Duration.Companion.milliseconds
 
 @Component
 class PantryTelegramBot(
     private val sender: TelegramSender,
     private val receiptPublisher: ReceiptPublisher,
+    private val acceptPantryInvite: AcceptPantryInviteUseCase,
 ) : LongPollingSingleThreadUpdateConsumer {
 
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
@@ -28,9 +33,24 @@ class PantryTelegramBot(
     private suspend fun route(message: Message) {
         when {
             message.hasPhoto() -> onPhoto(message)
-            message.text == "/start" -> sender.send(message.chatId, START_TEXT)
+            message.text?.startsWith("/start") == true -> onStart(message)
             else -> sender.send(message.chatId, HINT_TEXT)
         }
+    }
+
+    private fun onStart(message: Message) {
+        val token = message.text.removePrefix("/start").trim()
+            .runCatching { UUID.fromString(this) }.getOrNull()
+        if (token == null) {
+            sender.send(message.chatId, START_TEXT)
+            return
+        }
+        val text = when (val result = acceptPantryInvite.acceptInvite(TelegramUserId(message.from.id), token)) {
+            is AcceptInviteResult.Joined -> "Вы присоединились к инвентарю «${result.pantry.name}» ✓"
+            is AcceptInviteResult.AlreadyMember -> "Вы уже участник инвентаря «${result.pantry.name}»"
+            AcceptInviteResult.InvalidInvite -> "Ссылка-приглашение недействительна или устарела"
+        }
+        sender.send(message.chatId, text)
     }
 
     private suspend fun onPhoto(message: Message) {
