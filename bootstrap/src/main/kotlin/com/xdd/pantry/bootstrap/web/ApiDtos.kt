@@ -18,7 +18,7 @@ import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
 
-data class PantryResponse(val id: UUID, val name: String, val role: String)
+data class PantryResponse(val id: UUID, val name: String, val role: String, val isDefault: Boolean)
 data class ProductResponse(val id: UUID, val name: String, val brand: String?)
 data class ProductBalanceResponse(val product: ProductResponse, val total: Int)
 data class StockItemResponse(val id: UUID, val quantity: Int, val purchasedAt: Instant, val expiresAt: LocalDate?)
@@ -71,8 +71,8 @@ fun UpdateDraftRequest.toRecognizedReceipt() = RecognizedReceipt(
     },
 )
 
-fun Pantry.toResponse(role: PantryRole) = PantryResponse(id.value, name, role.name)
-fun UserPantry.toResponse() = pantry.toResponse(role)
+fun Pantry.toResponse(role: PantryRole, isDefault: Boolean) = PantryResponse(id.value, name, role.name, isDefault)
+fun UserPantry.toResponse() = pantry.toResponse(role, isDefault)
 fun PantryMemberInfo.toResponse() = PantryMemberResponse(telegramUserId.value, role.name, joinedAt)
 fun Product.toResponse() = ProductResponse(id.value, name, brand)
 fun ProductBalance.toResponse() = ProductBalanceResponse(product.toResponse(), total)

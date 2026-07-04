@@ -1,7 +1,7 @@
 CREATE TABLE receipt_drafts
 (
     id         uuid        PRIMARY KEY,
-    pantry_id  uuid        NOT NULL REFERENCES pantries (id),
+    pantry_id  uuid        NOT NULL REFERENCES pantries (id) ON DELETE CASCADE,
     status     text        NOT NULL,
     created_at timestamptz NOT NULL,
     version    bigint      NOT NULL
@@ -11,10 +11,10 @@ CREATE INDEX ix_receipt_drafts_pantry_id ON receipt_drafts (pantry_id);
 CREATE TABLE receipt_draft_lines
 (
     id             uuid PRIMARY KEY,
-    draft_id       uuid NOT NULL REFERENCES receipt_drafts (id),
+    draft_id       uuid NOT NULL REFERENCES receipt_drafts (id) ON DELETE CASCADE,
     raw_text       text NOT NULL,
     action         text NOT NULL,
-    product_id     uuid REFERENCES products (id),
+    product_id     uuid REFERENCES products (id) ON DELETE SET NULL,
     proposed_name  text,
     proposed_brand text,
     quantity       int  NOT NULL,

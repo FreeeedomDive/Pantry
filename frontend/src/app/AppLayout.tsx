@@ -3,9 +3,8 @@ import { useEffect } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router'
 
 function parentPath(pathname: string): string | null {
-  const nestedMatch = pathname.match(
-    /^(\/pantries\/[^/]+)\/(products\/[^/]+|drafts\/[^/]+|members)$/,
-  )
+  if (/^\/pantries\/[^/]+\/members$/.test(pathname)) return '/'
+  const nestedMatch = pathname.match(/^(\/pantries\/[^/]+)\/(products\/[^/]+|drafts\/[^/]+)$/)
   if (nestedMatch) return nestedMatch[1]
   if (/^\/pantries\/[^/]+$/.test(pathname)) return '/'
   return null

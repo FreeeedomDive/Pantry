@@ -1,7 +1,7 @@
 CREATE TABLE products
 (
     id         uuid        PRIMARY KEY,
-    pantry_id  uuid        NOT NULL REFERENCES pantries (id),
+    pantry_id  uuid        NOT NULL REFERENCES pantries (id) ON DELETE CASCADE,
     name       text        NOT NULL,
     brand      text,
     created_at timestamptz NOT NULL,
@@ -12,7 +12,7 @@ CREATE INDEX ix_products_pantry_id ON products (pantry_id);
 CREATE TABLE stock_items
 (
     id           uuid        PRIMARY KEY,
-    product_id   uuid        NOT NULL REFERENCES products (id),
+    product_id   uuid        NOT NULL REFERENCES products (id) ON DELETE CASCADE,
     quantity     int         NOT NULL CHECK (quantity > 0),
     purchased_at timestamptz NOT NULL,
     expires_at   date,

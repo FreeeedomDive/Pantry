@@ -9,12 +9,14 @@ import org.springframework.transaction.annotation.Transactional
 @Transactional
 class KickPantryMemberUseCase(
     private val pantries: PantryRepository,
-    private val pantryAccessGuard: PantryAccessGuard
+    private val pantryAccessGuard: PantryAccessGuard,
+    private val defaultPantryReassigner: DefaultPantryReassigner,
 ) {
     fun kickPantryMember(pantryId: PantryId, ownerId: UserId, memberId: UserId) {
         require(ownerId != memberId) { "Owner cannot kick themselves out of the pantry" }
         pantryAccessGuard.checkAccess(pantryId, ownerId, shouldBeOwner = true)
         pantryAccessGuard.checkAccess(pantryId, memberId)
         pantries.deletePantryMember(pantryId, memberId)
+        defaultPantryReassigner.reassignIfNeeded(memberId, pantryId)
     }
 }

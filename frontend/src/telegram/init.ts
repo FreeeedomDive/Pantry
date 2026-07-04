@@ -14,7 +14,7 @@ export function initTelegram() {
       })
     }
     if (miniApp.ready.isAvailable()) miniApp.ready()
-  } catch {
-    // вне Telegram приложение продолжает работать в браузере без интеграции
+  } catch (error) {
+    console.warn('Telegram SDK не инициализирован, работаем без интеграции', error)
   }
 }

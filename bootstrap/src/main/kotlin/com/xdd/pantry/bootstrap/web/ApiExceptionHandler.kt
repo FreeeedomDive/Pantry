@@ -1,6 +1,7 @@
 package com.xdd.pantry.bootstrap.web
 
 import com.xdd.pantry.domain.exceptions.PantryDomainException
+import com.xdd.pantry.domain.pantries.CannotDeleteLastPantryException
 import com.xdd.pantry.domain.pantries.PantryActionDeniedException
 import com.xdd.pantry.domain.pantries.PantryMemberNotFoundException
 import com.xdd.pantry.domain.products.ProductNotFoundException
@@ -28,6 +29,9 @@ class ApiExceptionHandler {
 
     @ExceptionHandler(ReceiptDraftNotReadyException::class)
     fun conflict(e: ReceiptDraftNotReadyException) = error(HttpStatus.CONFLICT, e)
+
+    @ExceptionHandler(CannotDeleteLastPantryException::class)
+    fun conflict(e: CannotDeleteLastPantryException) = error(HttpStatus.CONFLICT, e)
 
     @ExceptionHandler(IllegalArgumentException::class)
     fun badRequest(e: IllegalArgumentException) =

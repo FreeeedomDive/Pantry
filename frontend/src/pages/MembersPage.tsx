@@ -14,13 +14,14 @@ import { notifications } from '@mantine/notifications'
 import { initData, openTelegramLink, useSignal } from '@telegram-apps/sdk-react'
 import { Link, useParams } from 'react-router'
 import { describeApiError } from '../api/http'
-import { useCreateInvite, usePantryMembers } from '../api/pantries'
+import { useCreateInvite, usePantry, usePantryMembers } from '../api/pantries'
 import type { InviteResponse } from '../api/types'
 import { formatDate } from '../ui/format'
 import { ErrorState, LoadingState } from '../ui/states'
 
 export function MembersPage() {
   const { pantryId } = useParams<{ pantryId: string }>()
+  const pantry = usePantry(pantryId!)
   const members = usePantryMembers(pantryId!)
   const me = useSignal(initData.user)
   const isOwner =
@@ -30,10 +31,12 @@ export function MembersPage() {
   return (
     <Container size="xs" py="md">
       <Stack gap="md">
-        <Anchor component={Link} to={`/pantries/${pantryId}`} size="sm">
-          ← К инвентарю
+        <Anchor component={Link} to="/" size="sm">
+          ← Инвентари
         </Anchor>
-        <Title order={2}>Участники</Title>
+        <Title order={2} style={{ overflowWrap: 'anywhere' }}>
+          {pantry.data ? `${pantry.data.name} — владельцы` : 'Владельцы'}
+        </Title>
         {members.isPending && <LoadingState />}
         {members.isError && <ErrorState error={members.error} onRetry={() => members.refetch()} />}
         {members.isSuccess &&
@@ -54,7 +57,7 @@ export function MembersPage() {
                   color={member.role === 'OWNER' ? 'teal' : 'gray'}
                   style={{ flexShrink: 0 }}
                 >
-                  {member.role === 'OWNER' ? 'Владелец' : 'Участник'}
+                  {member.role === 'OWNER' ? 'Владелец' : 'Совладелец'}
                 </Badge>
               </Group>
             </Card>

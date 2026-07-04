@@ -6,4 +6,5 @@ import com.xdd.pantry.domain.users.UserId
 interface UserDefaultsRepository {
     fun getDefaultPantryId(userId: UserId): PantryId?
     fun setDefaultPantryId(userId: UserId, pantryId: PantryId)
+    fun clearDefaultPantryId(userId: UserId)
 }

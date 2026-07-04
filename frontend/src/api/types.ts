@@ -4,6 +4,7 @@ export interface PantryResponse {
   id: string
   name: string
   role: PantryRole
+  isDefault: boolean
 }
 
 export interface PantryMemberResponse {

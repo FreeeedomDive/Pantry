@@ -8,7 +8,7 @@ CREATE TABLE pantries
 
 CREATE TABLE pantry_members
 (
-    pantry_id uuid        NOT NULL REFERENCES pantries (id),
+    pantry_id uuid        NOT NULL REFERENCES pantries (id) ON DELETE CASCADE,
     user_id   uuid        NOT NULL REFERENCES users (id),
     role      text        NOT NULL,
     joined_at timestamptz NOT NULL,

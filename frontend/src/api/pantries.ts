@@ -37,6 +37,26 @@ export function useRenamePantry(pantryId: string) {
   })
 }
 
+export function useSetDefaultPantry() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (pantryId: string) => api.post<void>(`/pantries/${pantryId}/default`),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['pantries'] })
+    },
+  })
+}
+
+export function useLeaveOrDeletePantry() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (pantryId: string) => api.delete(`/pantries/${pantryId}`),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['pantries'] })
+    },
+  })
+}
+
 export function usePantryMembers(pantryId: string) {
   return useQuery({
     queryKey: ['pantries', pantryId, 'members'],

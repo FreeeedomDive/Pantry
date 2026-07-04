@@ -27,4 +27,9 @@ class UserDefaultsRepositoryAdapter(
             jpa.save(UserDefaultsEntity(userId.value, pantryId.value))
         }
     }
+
+    @Transactional
+    override fun clearDefaultPantryId(userId: UserId) {
+        jpa.findById(userId.value).orElse(null)?.let { it.defaultPantryId = null }
+    }
 }

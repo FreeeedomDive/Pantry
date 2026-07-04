@@ -1,8 +1,8 @@
-import { isTMA, mockTelegramEnv } from '@telegram-apps/sdk-react'
+import { mockTelegramEnv } from '@telegram-apps/sdk-react'
 
 export function mockTelegramEnvForDev() {
   const initData = import.meta.env.VITE_DEBUG_INIT_DATA
-  if (!import.meta.env.DEV || !initData || isTMA()) return
+  if (!import.meta.env.DEV || !initData) return
 
   try {
     mockTelegramEnv({
@@ -12,6 +12,7 @@ export function mockTelegramEnvForDev() {
         tgWebAppPlatform: 'tdesktop',
         tgWebAppThemeParams: {},
       },
+      resetPostMessage: true,
     })
   } catch (error) {
     console.warn('VITE_DEBUG_INIT_DATA отклонён SDK, мок Telegram не применён', error)

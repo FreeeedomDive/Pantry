@@ -1,7 +1,7 @@
 CREATE TABLE pantry_invites
 (
     token      uuid        PRIMARY KEY,
-    pantry_id  uuid        NOT NULL REFERENCES pantries (id),
+    pantry_id  uuid        NOT NULL REFERENCES pantries (id) ON DELETE CASCADE,
     created_by uuid        NOT NULL REFERENCES users (id),
     created_at timestamptz NOT NULL,
     expires_at timestamptz NOT NULL,
