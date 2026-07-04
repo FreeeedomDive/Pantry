@@ -1,13 +1,10 @@
 package com.xdd.pantry.application.receipts
 
 import com.xdd.pantry.domain.pantries.PantryId
-import com.xdd.pantry.domain.products.ProductId
-import com.xdd.pantry.domain.receipts.Confidence
 import com.xdd.pantry.domain.receipts.DraftStatus
+import com.xdd.pantry.domain.receipts.ExtractedLine
+import com.xdd.pantry.domain.receipts.ExtractedReceipt
 import com.xdd.pantry.domain.receipts.ReceiptDraft
-import com.xdd.pantry.domain.receipts.RecognizedAction
-import com.xdd.pantry.domain.receipts.RecognizedLine
-import com.xdd.pantry.domain.receipts.RecognizedReceipt
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.mockk.every
@@ -24,25 +21,20 @@ class CreateReceiptDraftUseCaseTest {
     private val pantryId = PantryId(UUID.randomUUID())
 
     @Test
-    fun `creates a READY draft from the recognized receipt`() {
-        val milkId = ProductId(UUID.randomUUID())
+    fun `creates an EXTRACTED draft from the extracted receipt`() {
         every { drafts.save(any()) } answers { firstArg() }
 
-        val draft = useCase.createDraft(
+        val draft = useCase.createFromExtracted(
             pantryId,
-            RecognizedReceipt(
-                listOf(
-                    RecognizedLine("МОЛОКО 3.2", RecognizedAction.MATCH, milkId, null, null, 1, Confidence.HIGH),
-                    RecognizedLine("ХЛЕБ", RecognizedAction.CREATE, null, "Хлеб", null, 2, Confidence.LOW),
-                ),
-            ),
+            ExtractedReceipt(listOf(ExtractedLine("МОЛОКО 3.2", 1), ExtractedLine("ХЛЕБ", 2))),
         )
 
-        draft.status shouldBe DraftStatus.READY
+        draft.status shouldBe DraftStatus.EXTRACTED
         draft.pantryId shouldBe pantryId
         draft.lines shouldHaveSize 2
+        draft.lines.map { it.rawText } shouldBe listOf("МОЛОКО 3.2", "ХЛЕБ")
         verify(exactly = 1) {
-            drafts.save(match<ReceiptDraft> { it.status == DraftStatus.READY && it.lines.size == 2 })
+            drafts.save(match<ReceiptDraft> { it.status == DraftStatus.EXTRACTED && it.lines.size == 2 })
         }
     }
 }

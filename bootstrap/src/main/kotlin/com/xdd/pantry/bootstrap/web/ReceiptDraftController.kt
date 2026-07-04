@@ -2,16 +2,19 @@ package com.xdd.pantry.bootstrap.web
 
 import com.xdd.pantry.application.receipts.ConfirmReceiptDraftUseCase
 import com.xdd.pantry.application.receipts.GetReceiptDraftUseCase
+import com.xdd.pantry.application.receipts.MoveReceiptDraftUseCase
 import com.xdd.pantry.application.receipts.UpdateReceiptDraftUseCase
 import com.xdd.pantry.domain.pantries.PantryId
 import com.xdd.pantry.domain.receipts.DraftId
 import com.xdd.pantry.domain.users.UserId
+import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import java.util.UUID
 
@@ -21,6 +24,7 @@ class ReceiptDraftController(
     private val getReceiptDraft: GetReceiptDraftUseCase,
     private val updateReceiptDraft: UpdateReceiptDraftUseCase,
     private val confirmReceiptDraft: ConfirmReceiptDraftUseCase,
+    private val moveReceiptDraft: MoveReceiptDraftUseCase,
 ) {
     @GetMapping("/{draftId}")
     fun get(
@@ -42,5 +46,16 @@ class ReceiptDraftController(
     @PostMapping("/{draftId}/confirm")
     fun confirm(@CurrentUser userId: UserId, @PathVariable pantryId: UUID, @PathVariable draftId: UUID) {
         confirmReceiptDraft.confirmDraft(userId, PantryId(pantryId), DraftId(draftId))
+    }
+
+    @PostMapping("/{draftId}/move")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    fun move(
+        @CurrentUser userId: UserId,
+        @PathVariable pantryId: UUID,
+        @PathVariable draftId: UUID,
+        @RequestBody request: MoveDraftRequest,
+    ) {
+        moveReceiptDraft.move(userId, PantryId(pantryId), DraftId(draftId), PantryId(request.pantryId))
     }
 }

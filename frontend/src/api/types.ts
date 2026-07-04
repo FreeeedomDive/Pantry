@@ -35,7 +35,7 @@ export interface StockItemResponse {
   expiresAt: string | null
 }
 
-export type DraftStatus = 'PENDING' | 'READY' | 'CONFIRMED' | 'FAILED'
+export type DraftStatus = 'EXTRACTED' | 'MATCHING' | 'READY' | 'CONFIRMED' | 'FAILED'
 export type DraftLineAction = 'MATCH' | 'CREATE' | 'UNSURE'
 export type Confidence = 'HIGH' | 'LOW'
 

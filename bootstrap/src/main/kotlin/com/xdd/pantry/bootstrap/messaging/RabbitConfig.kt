@@ -26,6 +26,14 @@ class RabbitConfig {
         BindingBuilder.bind(receiptsQueue()).to(receiptsExchange()).with(ROUTING_KEY)
 
     @Bean
+    fun receiptsMatchQueue(): Queue =
+        QueueBuilder.durable(MATCH_QUEUE).deadLetterExchange(DEAD_LETTER_EXCHANGE).deadLetterRoutingKey(ROUTING_KEY).build()
+
+    @Bean
+    fun receiptsMatchBinding(): Binding =
+        BindingBuilder.bind(receiptsMatchQueue()).to(receiptsExchange()).with(MATCH_ROUTING_KEY)
+
+    @Bean
     fun receiptsDeadLetterExchange() = DirectExchange(DEAD_LETTER_EXCHANGE)
 
     @Bean
@@ -43,6 +51,8 @@ class RabbitConfig {
         const val EXCHANGE = "pantry.receipts"
         const val QUEUE = "pantry.receipts.process"
         const val ROUTING_KEY = "receipt.submitted"
+        const val MATCH_QUEUE = "pantry.receipts.match"
+        const val MATCH_ROUTING_KEY = "receipt.extracted"
         const val DEAD_LETTER_EXCHANGE = "pantry.receipts.dlx"
         const val DEAD_LETTER_QUEUE = "pantry.receipts.dlq"
     }

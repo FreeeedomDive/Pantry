@@ -36,3 +36,10 @@ export function useConfirmDraft(pantryId: string, draftId: string) {
     },
   })
 }
+
+export function useMoveDraft(pantryId: string, draftId: string) {
+  return useMutation({
+    mutationFn: (targetPantryId: string) =>
+      api.post<void>(`/pantries/${pantryId}/drafts/${draftId}/move`, { pantryId: targetPantryId }),
+  })
+}

@@ -61,8 +61,8 @@ class PantryTelegramBot(
     private fun submit(photos: List<Message>) {
         val first = photos.first()
         val fileIds = photos.map { message -> message.photo.maxBy { it.fileSize ?: 0 }.fileId }
-        receiptPublisher.publish(ReceiptSubmitted(first.from.id, first.chatId, fileIds))
-        sender.send(first.chatId, "Принял, обрабатываю…")
+        receiptPublisher.publishSubmitted(ReceiptSubmitted(first.from.id, first.chatId, fileIds))
+        sender.send(first.chatId, "Распознаю товары в чеке…")
     }
 
     companion object {

@@ -5,7 +5,11 @@ import org.springframework.stereotype.Component
 
 @Component
 class ReceiptPublisher(private val rabbitTemplate: RabbitTemplate) {
-    fun publish(receipt: ReceiptSubmitted) {
+    fun publishSubmitted(receipt: ReceiptSubmitted) {
         rabbitTemplate.convertAndSend(RabbitConfig.EXCHANGE, RabbitConfig.ROUTING_KEY, receipt)
+    }
+
+    fun publishExtracted(extracted: ReceiptExtracted) {
+        rabbitTemplate.convertAndSend(RabbitConfig.EXCHANGE, RabbitConfig.MATCH_ROUTING_KEY, extracted)
     }
 }

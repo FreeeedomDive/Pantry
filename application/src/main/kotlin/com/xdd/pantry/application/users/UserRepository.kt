@@ -6,6 +6,7 @@ import com.xdd.pantry.domain.users.UserId
 
 interface UserRepository {
     fun findByTelegramUserId(telegramUserId: TelegramUserId): User?
+    fun findById(userId: UserId): User?
     fun findByIds(ids: Collection<UserId>): List<User>
     fun save(user: User): User
 }

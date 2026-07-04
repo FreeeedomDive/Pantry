@@ -4,6 +4,7 @@ import com.xdd.pantry.application.pantries.CreateDefaultPantryOnRegistration
 import com.xdd.pantry.application.pantries.CreateNewPantryUseCase
 import com.xdd.pantry.application.pantries.PantryRepository
 import com.xdd.pantry.application.users.RegisterUserUseCase
+import com.xdd.pantry.application.users.UserDefaultsRepository
 import com.xdd.pantry.domain.pantries.PantryRole
 import com.xdd.pantry.domain.users.TelegramUserId
 import com.xdd.pantry.infrastructure.IntegrationTestsBase
@@ -19,6 +20,7 @@ import org.springframework.context.annotation.Import
 @DataJpaTest
 @Import(
     UserRepositoryAdapter::class,
+    UserDefaultsRepositoryAdapter::class,
     PantryRepositoryAdapter::class,
     RegisterUserUseCase::class,
     CreateNewPantryUseCase::class,
@@ -32,10 +34,13 @@ class UserRegistrationFlowTest : IntegrationTestsBase() {
     private lateinit var pantries: PantryRepository
 
     @Autowired
+    private lateinit var userDefaults: UserDefaultsRepository
+
+    @Autowired
     private lateinit var em: TestEntityManager
 
     @Test
-    fun `new user gets a default pantry and owns it`() {
+    fun `new user gets a default pantry, owns it and it is marked as their default`() {
         val user = registerUser.findOrRegister(TelegramUserId(100L))
         em.flush()
         em.clear()
@@ -44,6 +49,7 @@ class UserRegistrationFlowTest : IntegrationTestsBase() {
         userPantries shouldHaveSize 1
         userPantries.single().name shouldBe CreateDefaultPantryOnRegistration.DEFAULT_PANTRY_NAME
         pantries.getPantryMember(userPantries.single().id, user.id)?.role shouldBe PantryRole.OWNER
+        userDefaults.getDefaultPantryId(user.id) shouldBe userPantries.single().id
     }
 
     @Test

@@ -54,6 +54,7 @@ data class DraftLineInput(
     val expiresAt: LocalDate?,
 )
 data class UpdateDraftRequest(val lines: List<DraftLineInput>)
+data class MoveDraftRequest(val pantryId: UUID)
 
 fun UpdateDraftRequest.toRecognizedReceipt() = RecognizedReceipt(
     lines.map { line ->

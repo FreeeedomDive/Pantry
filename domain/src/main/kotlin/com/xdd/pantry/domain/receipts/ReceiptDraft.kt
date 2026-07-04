@@ -9,7 +9,7 @@ import java.util.UUID
 @JvmInline value class DraftId(val value: UUID)
 @JvmInline value class DraftLineId(val value: UUID)
 
-enum class DraftStatus { PENDING, READY, CONFIRMED, FAILED }
+enum class DraftStatus { EXTRACTED, MATCHING, READY, CONFIRMED, FAILED }
 
 data class DraftLine(
     val id: DraftLineId,
@@ -30,26 +30,43 @@ data class ReceiptDraft(
     val createdAt: Instant,
     val lines: List<DraftLine>,
 ) {
+    fun toExtractedReceipt(): ExtractedReceipt =
+        ExtractedReceipt(lines.map { ExtractedLine(it.rawText, it.quantity) })
+
     companion object {
-        fun ready(pantryId: PantryId, recognized: RecognizedReceipt): ReceiptDraft =
+        fun extracted(pantryId: PantryId, extracted: ExtractedReceipt): ReceiptDraft =
             ReceiptDraft(
                 id = DraftId(UUID.randomUUID()),
                 pantryId = pantryId,
-                status = DraftStatus.READY,
+                status = DraftStatus.EXTRACTED,
                 createdAt = Instant.now(),
-                lines = recognized.lines.map { line ->
+                lines = extracted.lines.map { line ->
                     DraftLine(
                         id = DraftLineId(UUID.randomUUID()),
                         rawText = line.rawText,
-                        action = line.action,
-                        productId = line.productId,
-                        proposedName = line.proposedName,
-                        proposedBrand = line.proposedBrand,
+                        action = RecognizedAction.UNSURE,
+                        productId = null,
+                        proposedName = null,
+                        proposedBrand = null,
                         quantity = line.quantity,
-                        confidence = line.confidence,
-                        expiresAt = line.expiresAt,
+                        confidence = Confidence.LOW,
                     )
                 },
             )
+
+        fun matchedLines(recognized: RecognizedReceipt): List<DraftLine> =
+            recognized.lines.map { line ->
+                DraftLine(
+                    id = DraftLineId(UUID.randomUUID()),
+                    rawText = line.rawText,
+                    action = line.action,
+                    productId = line.productId,
+                    proposedName = line.proposedName,
+                    proposedBrand = line.proposedBrand,
+                    quantity = line.quantity,
+                    confidence = line.confidence,
+                    expiresAt = line.expiresAt,
+                )
+            }
     }
 }

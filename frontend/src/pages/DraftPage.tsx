@@ -1,10 +1,11 @@
 import { Alert, Anchor, Button, Container, Stack, Text, Title } from '@mantine/core'
 import { notifications } from '@mantine/notifications'
 import { useState } from 'react'
-import { Link, useParams } from 'react-router'
+import { Link, useNavigate, useParams } from 'react-router'
 import { useConfirmDraft, useDraft, useUpdateDraft } from '../api/drafts'
 import { ApiError, describeApiError } from '../api/http'
 import { useProducts } from '../api/products'
+import { closeApp } from '../telegram/close'
 import type {
   DraftLineInput,
   DraftLineResponse,
@@ -14,6 +15,7 @@ import type {
 import { ErrorState, LoadingState } from '../ui/states'
 import { DraftLineCard } from './draft/DraftLineCard'
 import { EditLineModal } from './draft/EditLineModal'
+import { MoveDraftModal } from './draft/MoveDraftModal'
 import { resolveLine, willBeApplied } from './draft/lineStatus'
 
 function toInput(line: DraftLineResponse): DraftLineInput {
@@ -41,11 +43,13 @@ function notifyDraftError(error: unknown) {
 
 export function DraftPage() {
   const { pantryId, draftId } = useParams<{ pantryId: string; draftId: string }>()
+  const navigate = useNavigate()
   const draft = useDraft(pantryId!, draftId!)
   const products = useProducts(pantryId!)
   const updateDraft = useUpdateDraft(pantryId!, draftId!)
   const confirmDraft = useConfirmDraft(pantryId!, draftId!)
   const [editingIndex, setEditingIndex] = useState<number | null>(null)
+  const [moving, setMoving] = useState(false)
 
   const saveLine = (draftData: DraftResponse, index: number, input: DraftLineInput) => {
     const lines = draftData.lines.map((line, i) => (i === index ? input : toInput(line)))
@@ -65,6 +69,15 @@ export function DraftPage() {
         }),
       onError: notifyDraftError,
     })
+  }
+
+  const onMoved = () => {
+    notifications.show({
+      color: 'blue',
+      title: 'Переношу',
+      message: 'Сопоставляю в другом инвентаре — бот пришлёт новую ссылку на черновик.',
+    })
+    closeApp(() => navigate(`/pantries/${pantryId}`))
   }
 
   return (
@@ -95,16 +108,17 @@ export function DraftPage() {
             </Stack>
           </Alert>
         )}
-        {draft.isSuccess && draft.data.status === 'PENDING' && (
-          <Alert color="blue" title="Черновик ещё обрабатывается">
-            <Stack gap="sm">
-              <Text size="sm">Попробуйте обновить через несколько секунд.</Text>
-              <Button variant="light" size="xs" onClick={() => draft.refetch()}>
-                Обновить
-              </Button>
-            </Stack>
-          </Alert>
-        )}
+        {draft.isSuccess &&
+          (draft.data.status === 'EXTRACTED' || draft.data.status === 'MATCHING') && (
+            <Alert color="blue" title="Сопоставляю с каталогом">
+              <Stack gap="sm">
+                <Text size="sm">Черновик ещё готовится. Обновите через несколько секунд.</Text>
+                <Button variant="light" size="xs" onClick={() => draft.refetch()}>
+                  Обновить
+                </Button>
+              </Stack>
+            </Alert>
+          )}
         {draft.isSuccess && draft.data.status === 'FAILED' && (
           <Alert color="red" title="Не удалось обработать чек">
             Отправьте боту фото ещё раз.
@@ -125,9 +139,18 @@ export function DraftPage() {
             saving={updateDraft.isPending}
             onConfirm={confirm}
             confirming={confirmDraft.isPending}
+            onRequestMove={() => setMoving(true)}
           />
         )}
       </Stack>
+      {moving && (
+        <MoveDraftModal
+          pantryId={pantryId!}
+          draftId={draftId!}
+          onClose={() => setMoving(false)}
+          onMoved={onMoved}
+        />
+      )}
     </Container>
   )
 }
@@ -141,6 +164,7 @@ function DraftEditor({
   saving,
   onConfirm,
   confirming,
+  onRequestMove,
 }: {
   draft: DraftResponse
   products: ProductResponse[]
@@ -150,6 +174,7 @@ function DraftEditor({
   saving: boolean
   onConfirm: () => void
   confirming: boolean
+  onRequestMove: () => void
 }) {
   const resolutions = draft.lines.map((line) => resolveLine(line, products))
   const appliedCount = resolutions.filter(willBeApplied).length
@@ -179,6 +204,9 @@ function DraftEditor({
         disabled={saving || appliedCount === 0}
       >
         Начислить {appliedCount} {pluralizeLines(appliedCount)}
+      </Button>
+      <Button variant="subtle" size="sm" onClick={onRequestMove}>
+        Перенести в другой инвентарь
       </Button>
 
       {editedLine && (

@@ -20,6 +20,9 @@ class UserRepositoryAdapter(
     override fun findByTelegramUserId(telegramUserId: TelegramUserId): User? =
         jpa.findByTelegramUserId(telegramUserId.value)?.toDomain()
 
+    override fun findById(userId: UserId): User? =
+        jpa.findById(userId.value).orElse(null)?.toDomain()
+
     override fun findByIds(ids: Collection<UserId>): List<User> =
         jpa.findAllById(ids.map { it.value }).map { it.toDomain() }
 

@@ -53,6 +53,17 @@ class ReceiptDraftRepositoryAdapter(
         lines.saveAll(newLines.map { it.toEntity(draftId) })
         return getDraft(draftId) ?: error("Draft $draftId disappeared while replacing lines")
     }
+
+    @Transactional
+    override fun applyMatch(draftId: DraftId, pantryId: PantryId, newLines: List<DraftLine>): ReceiptDraft {
+        val entity = drafts.findById(draftId.value).orElse(null)
+            ?: error("Draft $draftId disappeared while applying match")
+        entity.pantryId = pantryId.value
+        entity.status = DraftStatus.READY.name
+        lines.deleteByDraftId(draftId.value)
+        lines.saveAll(newLines.map { it.toEntity(draftId) })
+        return getDraft(draftId) ?: error("Draft $draftId disappeared while applying match")
+    }
 }
 
 private fun ReceiptDraftEntity.toDomain(lines: List<DraftLine>) =
