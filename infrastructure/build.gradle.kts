@@ -6,6 +6,7 @@ plugins {
 dependencies {
     implementation(project(":application"))
     implementation(project(":domain"))
+    implementation(project(":schema"))
 
     implementation(libs.spring.boot.starter.data.jpa)
     implementation(libs.spring.boot.starter.flyway)

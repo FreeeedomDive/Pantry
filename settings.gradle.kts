@@ -5,4 +5,6 @@ include(
     ":application",
     ":infrastructure",
     ":bootstrap",
+    ":schema",
+    ":migrator",
 )
