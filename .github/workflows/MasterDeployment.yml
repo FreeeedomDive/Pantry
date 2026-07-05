@@ -1,0 +1,91 @@
+name: Master Deployment
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+jobs:
+  detect-changes:
+    name: Detect Changes for Deployments
+    runs-on: ubuntu-latest
+    outputs:
+      migrate: ${{ steps.check.outputs.migrate }}
+      deploy_backend: ${{ steps.check.outputs.deploy_backend }}
+      deploy_frontend: ${{ steps.check.outputs.deploy_frontend }}
+      deploy_nginx: ${{ steps.check.outputs.deploy_nginx }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Detect changes in specific projects
+        id: check
+        run: |
+          CHANGED=$(git diff --name-only HEAD^ HEAD)
+
+          migrate=false
+          deploy_backend=false
+          deploy_frontend=false
+          deploy_nginx=false
+
+          # Schema migrations or migrator module -> rebuild migrator
+          if echo "$CHANGED" | grep -qE '^(schema|migrator)/|^Dockerfile\.migrator$'; then
+            migrate=true
+          fi
+
+          # Backend modules -> rebuild backend
+          if echo "$CHANGED" | grep -qE '^(domain|application|infrastructure|bootstrap)/|^Dockerfile$'; then
+            deploy_backend=true
+          fi
+
+          # Shared Gradle build files -> rebuild both backend and migrator
+          if echo "$CHANGED" | grep -qE '^(buildSrc|gradle)/|^(settings|build)\.gradle\.kts$|^gradlew(\.bat)?$'; then
+            deploy_backend=true
+            migrate=true
+          fi
+
+          # Frontend -> rebuild frontend
+          if echo "$CHANGED" | grep -qE '^frontend/'; then
+            deploy_frontend=true
+          fi
+
+          # Nginx -> rebuild nginx
+          if echo "$CHANGED" | grep -qE '^nginx/'; then
+            deploy_nginx=true
+          fi
+
+          {
+            echo "migrate=$migrate"
+            echo "deploy_backend=$deploy_backend"
+            echo "deploy_frontend=$deploy_frontend"
+            echo "deploy_nginx=$deploy_nginx"
+          } >> "$GITHUB_OUTPUT"
+
+  migrate:
+    name: Deploy Migrator
+    needs: [detect-changes]
+    if: ${{ needs.detect-changes.outputs.migrate == 'true' && !failure() && !cancelled() }}
+    uses: ./.github/workflows/DeployMigrator.yml
+    secrets: inherit
+
+  deploy_backend:
+    name: Deploy Backend
+    needs: [detect-changes, migrate]
+    if: ${{ needs.detect-changes.outputs.deploy_backend == 'true' && !failure() && !cancelled() }}
+    uses: ./.github/workflows/DeployBackend.yml
+    secrets: inherit
+
+  deploy_frontend:
+    name: Deploy Frontend
+    needs: [detect-changes]
+    if: ${{ needs.detect-changes.outputs.deploy_frontend == 'true' && !failure() && !cancelled() }}
+    uses: ./.github/workflows/DeployFrontend.yml
+    secrets: inherit
+
+  deploy_nginx:
+    name: Deploy Nginx
+    needs: [detect-changes]
+    if: ${{ needs.detect-changes.outputs.deploy_nginx == 'true' && !failure() && !cancelled() }}
+    uses: ./.github/workflows/DeployNginx.yml
+    secrets: inherit
