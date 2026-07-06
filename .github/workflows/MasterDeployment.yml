@@ -70,7 +70,7 @@ jobs:
     secrets: inherit
 
   deploy_telegram_bot:
-    name: Deploy Backend
+    name: Deploy TelegramBot
     needs: [detect-changes, migrate]
     if: ${{ needs.detect-changes.outputs.deploy_telegram_bot == 'true' && !failure() && !cancelled() }}
     uses: ./.github/workflows/DeployTelegramBot.yml
