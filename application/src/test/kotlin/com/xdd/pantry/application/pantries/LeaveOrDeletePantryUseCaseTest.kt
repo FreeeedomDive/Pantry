@@ -29,7 +29,7 @@ class LeaveOrDeletePantryUseCaseTest {
     @Test
     fun `owner deletes the pantry when they have other pantries left`() {
         every { guard.checkAccess(pantryId, userId) } returns member(PantryRole.OWNER)
-        every { pantries.getUserPantries(userId) } returns listOf(somePantry(), somePantry())
+        every { pantries.getUserMemberships(userId) } returns listOf(somePantryMember(userId), somePantryMember(userId))
         justRun { pantries.delete(pantryId) }
 
         useCase.leaveOrDelete(userId, pantryId)
@@ -41,7 +41,7 @@ class LeaveOrDeletePantryUseCaseTest {
     @Test
     fun `owner cannot delete their last remaining pantry`() {
         every { guard.checkAccess(pantryId, userId) } returns member(PantryRole.OWNER)
-        every { pantries.getUserPantries(userId) } returns listOf(somePantry())
+        every { pantries.getUserMemberships(userId) } returns listOf(somePantryMember(userId))
 
         shouldThrow<CannotDeleteLastPantryException> { useCase.leaveOrDelete(userId, pantryId) }
 
@@ -72,5 +72,5 @@ class LeaveOrDeletePantryUseCaseTest {
     }
 
     private fun member(role: PantryRole) = PantryMember(pantryId, userId, role, Instant.now())
-    private fun somePantry() = Pantry(PantryId(UUID.randomUUID()), "Инвентарь", Instant.now())
+    private fun somePantryMember(userId: UserId) = PantryMember(PantryId(UUID.randomUUID()), userId, PantryRole.OWNER, Instant.now())
 }
