@@ -8,7 +8,7 @@ env:
   BUILD_CONTEXT: "."
   DOCKERFILE: "Dockerfile.migrator"
   DOCKERIMAGE: pantrymigrator
-  VALUES_FILE: values/pantry/backend.yaml
+  VALUES_FILE: values/pantry/telegram-bot.yaml
 
 jobs:
   deploy:

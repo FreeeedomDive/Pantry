@@ -7,8 +7,8 @@ on:
 env:
   BUILD_CONTEXT: "."
   DOCKERFILE: "Dockerfile"
-  DOCKERIMAGE: pantrybackend
-  VALUES_FILE: values/pantry/backend.yaml
+  DOCKERIMAGE: pantrytelegrambot
+  VALUES_FILE: values/pantry/telegram-bot.yaml
 
 jobs:
   deploy:
@@ -45,5 +45,5 @@ jobs:
           yq e '.image.tag = "${{ github.sha }}"' -i argocd-config/$VALUES_FILE
           git -C argocd-config config user.email "ci@github.com"
           git -C argocd-config config user.name "GitHub Actions"
-          git -C argocd-config commit -am "deploy: pantrybackend ${{ github.sha }}"
+          git -C argocd-config commit -am "deploy: pantrytelegrambot ${{ github.sha }}"
           git -C argocd-config push

@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       migrate: ${{ steps.check.outputs.migrate }}
-      deploy_backend: ${{ steps.check.outputs.deploy_backend }}
+      deploy_telegram_bot: ${{ steps.check.outputs.deploy_telegram_bot }}
       deploy_frontend: ${{ steps.check.outputs.deploy_frontend }}
       deploy_nginx: ${{ steps.check.outputs.deploy_nginx }}
     steps:
@@ -25,7 +25,7 @@ jobs:
           CHANGED=$(git diff --name-only HEAD^ HEAD)
 
           migrate=false
-          deploy_backend=false
+          deploy_telegram_bot=false
           deploy_frontend=false
           deploy_nginx=false
 
@@ -36,12 +36,12 @@ jobs:
 
           # Backend modules -> rebuild backend
           if echo "$CHANGED" | grep -qE '^(domain|application|infrastructure|bootstrap)/|^Dockerfile$'; then
-            deploy_backend=true
+            deploy_telegram_bot=true
           fi
 
           # Shared Gradle build files -> rebuild both backend and migrator
           if echo "$CHANGED" | grep -qE '^(buildSrc|gradle)/|^(settings|build)\.gradle\.kts$|^gradlew(\.bat)?$'; then
-            deploy_backend=true
+            deploy_telegram_bot=true
             migrate=true
           fi
 
@@ -57,7 +57,7 @@ jobs:
 
           {
             echo "migrate=$migrate"
-            echo "deploy_backend=$deploy_backend"
+            echo "deploy_telegram_bot=$deploy_telegram_bot"
             echo "deploy_frontend=$deploy_frontend"
             echo "deploy_nginx=$deploy_nginx"
           } >> "$GITHUB_OUTPUT"
@@ -69,11 +69,11 @@ jobs:
     uses: ./.github/workflows/DeployMigrator.yml
     secrets: inherit
 
-  deploy_backend:
+  deploy_telegram_bot:
     name: Deploy Backend
     needs: [detect-changes, migrate]
-    if: ${{ needs.detect-changes.outputs.deploy_backend == 'true' && !failure() && !cancelled() }}
-    uses: ./.github/workflows/DeployBackend.yml
+    if: ${{ needs.detect-changes.outputs.deploy_telegram_bot == 'true' && !failure() && !cancelled() }}
+    uses: ./.github/workflows/DeployTelegramBot.yml
     secrets: inherit
 
   deploy_frontend:
