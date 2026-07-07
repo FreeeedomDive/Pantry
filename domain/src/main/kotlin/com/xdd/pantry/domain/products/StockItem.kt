@@ -12,4 +12,8 @@ data class StockItem(
     val quantity: Quantity,
     val purchasedAt: Instant,
     val expiresAt: LocalDate?,
-)
+) {
+    fun writeOff(amount: Quantity): StockItem? =
+        if (amount.value >= quantity.value) null
+        else copy(quantity = Quantity(quantity.value - amount.value))
+}

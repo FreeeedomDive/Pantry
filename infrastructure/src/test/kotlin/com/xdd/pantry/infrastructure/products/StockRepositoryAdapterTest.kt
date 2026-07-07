@@ -77,6 +77,27 @@ class StockRepositoryAdapterTest : IntegrationTestsBase() {
     }
 
     @Test
+    fun `updates the quantity of an existing batch`() {
+        val product = newProduct(newPantry())
+        val item = stockItem(product.id, 5)
+        stock.save(item)
+        em.flush()
+        em.clear()
+
+        stock.updateQuantity(item.id, Quantity(2))
+        em.flush()
+        em.clear()
+
+        stock.getStockItem(item.id) shouldBe item.copy(quantity = Quantity(2))
+    }
+
+    @Test
+    fun `updateQuantity ignores a missing batch`() {
+        stock.updateQuantity(StockItemId(UUID.randomUUID()), Quantity(1))
+        em.flush()
+    }
+
+    @Test
     fun `deletes a batch`() {
         val product = newProduct(newPantry())
         val item = stockItem(product.id, 2)

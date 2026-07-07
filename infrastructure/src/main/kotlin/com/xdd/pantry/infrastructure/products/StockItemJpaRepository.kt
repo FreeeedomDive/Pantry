@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
+import org.springframework.transaction.annotation.Transactional
 import java.util.UUID
 
 interface StockItemJpaRepository : JpaRepository<StockItemEntity, UUID> {
@@ -30,6 +31,12 @@ class StockRepositoryAdapter(
 ) : StockRepository {
 
     override fun save(stockItem: StockItem): StockItem = stock.save(stockItem.toEntity()).toDomain()
+
+    @Transactional
+    override fun updateQuantity(stockItemId: StockItemId, quantity: Quantity) {
+        val entity = stock.findById(stockItemId.value).orElse(null) ?: return
+        entity.quantity = quantity.value
+    }
 
     override fun getStockItem(stockItemId: StockItemId): StockItem? =
         stock.findById(stockItemId.value).map { it.toDomain() }.orElse(null)

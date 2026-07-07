@@ -76,3 +76,7 @@ export interface UpdateDraftRequest {
 export interface CreatePantryRequest {
   name: string
 }
+
+export interface WriteOffStockRequest {
+  quantity: number
+}

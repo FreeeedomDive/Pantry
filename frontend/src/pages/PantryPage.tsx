@@ -24,36 +24,38 @@ export function PantryPage() {
           <EmptyState message="Товаров пока нет. Отправьте боту фото чека и подтвердите черновик поступления — товары появятся здесь." />
         )}
         {balance.isSuccess &&
-          balance.data.map(({ product, total }) => (
-            <Card
-              key={product.id}
-              component={Link}
-              to={`/pantries/${pantryId}/products/${product.id}`}
-              withBorder
-              padding="md"
-            >
-              <Group justify="space-between" wrap="nowrap">
-                <Stack gap={2} style={{ minWidth: 0 }}>
-                  <Text fw={500} style={{ overflowWrap: 'anywhere' }}>
-                    {product.name}
-                  </Text>
-                  {product.brand && (
-                    <Text size="sm" c="dimmed">
-                      {product.brand}
+          [...balance.data]
+            .sort((a, b) => Number(b.total > 0) - Number(a.total > 0))
+            .map(({ product, total }) => (
+              <Card
+                key={product.id}
+                component={Link}
+                to={`/pantries/${pantryId}/products/${product.id}`}
+                withBorder
+                padding="md"
+              >
+                <Group justify="space-between" wrap="nowrap">
+                  <Stack gap={2} style={{ minWidth: 0 }}>
+                    <Text fw={500} style={{ overflowWrap: 'anywhere' }}>
+                      {product.name}
                     </Text>
-                  )}
-                </Stack>
-                <Badge
-                  size="lg"
-                  variant="light"
-                  color={total > 0 ? 'teal' : 'gray'}
-                  style={{ flexShrink: 0 }}
-                >
-                  {total} шт
-                </Badge>
-              </Group>
-            </Card>
-          ))}
+                    {product.brand && (
+                      <Text size="sm" c="dimmed">
+                        {product.brand}
+                      </Text>
+                    )}
+                  </Stack>
+                  <Badge
+                    size="lg"
+                    variant="light"
+                    color={total > 0 ? 'teal' : 'gray'}
+                    style={{ flexShrink: 0 }}
+                  >
+                    {total} шт
+                  </Badge>
+                </Group>
+              </Card>
+            ))}
       </Stack>
     </Container>
   )
