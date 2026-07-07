@@ -43,6 +43,7 @@ data class RenamePantryRequest(val name: String)
 data class AddProductRequest(val name: String, val brand: String?)
 data class RenameProductRequest(val name: String, val brand: String?)
 data class AddStockRequest(val quantity: Int, val expiresAt: LocalDate?)
+data class WriteOffStockRequest(val quantity: Int)
 
 data class DraftLineInput(
     val rawText: String,
