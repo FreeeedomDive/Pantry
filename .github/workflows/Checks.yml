@@ -8,6 +8,21 @@ on:
       - master
 
 jobs:
+  remove-label:
+    name: Remove trigger label
+    if: ${{ github.event_name == 'pull_request' && (github.event.label.name == 'run-checks' || github.event.label.name == 'hotfix') }}
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Remove label so it can be re-applied to re-run
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+          LABEL: ${{ github.event.label.name }}
+          REPO: ${{ github.repository }}
+        run: gh pr edit "$PR" --repo "$REPO" --remove-label "$LABEL"
+
   detect-changes:
     name: Detect Changes
     if: ${{ github.event.label.name == 'run-checks' }}
