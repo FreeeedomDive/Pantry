@@ -1,27 +1,31 @@
 name: Checks
 
 on:
-  workflow_call:
   workflow_dispatch:
-  pull_request:
-    branches:
-      - master
+    inputs:
+      hotfix:
+        description: 'Skip tests & lint (hotfix)'
+        type: boolean
+        default: false
 
 jobs:
   detect-changes:
     name: Detect Changes
+    if: ${{ !inputs.hotfix }}
     uses: ./.github/workflows/DetectChanges.yml
+    with:
+      base-ref: master
 
   tests:
     name: Backend Tests
     needs: [detect-changes]
-    if: ${{ needs.detect-changes.outputs.backend == 'true' || needs.detect-changes.outputs.migrate == 'true' }}
+    if: ${{ !inputs.hotfix && (needs.detect-changes.outputs.backend == 'true' || needs.detect-changes.outputs.migrate == 'true') }}
     uses: ./.github/workflows/Tests.yml
 
   lint:
     name: Frontend Lint
     needs: [detect-changes]
-    if: ${{ needs.detect-changes.outputs.frontend == 'true' }}
+    if: ${{ !inputs.hotfix && needs.detect-changes.outputs.frontend == 'true' }}
     uses: ./.github/workflows/Lint.yml
 
   gate:
