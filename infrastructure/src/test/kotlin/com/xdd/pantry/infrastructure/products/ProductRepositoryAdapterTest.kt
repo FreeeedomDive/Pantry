@@ -89,6 +89,21 @@ class ProductRepositoryAdapterTest : IntegrationTestsBase() {
         updated.brand shouldBe "Био"
     }
 
+    @Test
+    fun `persists the staple mark`() {
+        val pantryId = newPantry()
+        val product = Product(ProductId(UUID.randomUUID()), pantryId, "Молоко", null)
+        products.save(product)
+        em.flush()
+        em.clear()
+
+        products.save(product.copy(isStaple = true))
+        em.flush()
+        em.clear()
+
+        products.getProduct(product.id)!!.isStaple shouldBe true
+    }
+
     private fun newPantry(): PantryId {
         val id = UUID.randomUUID()
         em.persist(PantryEntity(id, "Дом", Instant.now()))
