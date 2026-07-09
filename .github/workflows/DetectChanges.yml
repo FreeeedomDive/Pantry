@@ -2,6 +2,12 @@ name: Detect Changes
 
 on:
   workflow_call:
+    inputs:
+      base-ref:
+        description: 'Branch to diff the whole current ref against (e.g. master). Empty = last commit only.'
+        type: string
+        required: false
+        default: ''
     outputs:
       backend:
         description: "Backend modules or shared build files changed"
@@ -33,16 +39,17 @@ jobs:
 
       - name: Detect changed paths
         id: check
+        env:
+          BASE_REF: ${{ inputs.base-ref }}
         run: |
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            BASE="${{ github.event.pull_request.base.sha }}"
-            HEAD="${{ github.event.pull_request.head.sha }}"
+          if [ -n "$BASE_REF" ]; then
+            git fetch --no-tags origin "+refs/heads/$BASE_REF:refs/remotes/origin/$BASE_REF"
+            BASE=$(git merge-base "origin/$BASE_REF" HEAD)
           else
             BASE="HEAD^"
-            HEAD="HEAD"
           fi
 
-          CHANGED=$(git diff --name-only "$BASE" "$HEAD")
+          CHANGED=$(git diff --name-only "$BASE" HEAD)
 
           backend=false
           frontend=false

@@ -31,3 +31,7 @@ jobs:
       - name: Check formatting
         if: ${{ !cancelled() }}
         run: npm run format:check
+
+      - name: Type check
+        if: ${{ !cancelled() }}
+        run: npm run typecheck
