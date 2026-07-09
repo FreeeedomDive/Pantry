@@ -1,6 +1,7 @@
 import '@mantine/core/styles.css'
 import '@mantine/dates/styles.css'
 import '@mantine/notifications/styles.css'
+import './global.css'
 import 'dayjs/locale/ru'
 
 import { MantineProvider } from '@mantine/core'
