@@ -23,6 +23,7 @@ import { formatDate } from '../../ui/format.ts'
 import { EmptyState, ErrorState, LoadingState } from '../../ui/states.tsx'
 import { SwipeActionCard } from '../../ui/SwipeActionCard.tsx'
 import { ConfirmRemoveProductModal } from './ConfirmRemoveProductModal.tsx'
+import { RenameProductModal } from './RenameProductModal.tsx'
 
 export function ProductPage() {
   const { pantryId, productId } = useParams<{ pantryId: string; productId: string }>()
@@ -30,6 +31,7 @@ export function ProductPage() {
   const stock = useProductStock(pantryId!, productId!)
   const writeOff = useWriteOffStockItem(pantryId!, productId!)
   const stapleProduct = useStapleProduct(pantryId!, productId!)
+  const [renaming, setRenaming] = useState(false)
   const [removing, setRemoving] = useState(false)
 
   const product = balance.data?.product
@@ -82,6 +84,9 @@ export function ProductPage() {
                 </ActionIcon>
               </Menu.Target>
               <Menu.Dropdown>
+                <Menu.Item onClick={() => setRenaming(true)} disabled={!product}>
+                  Переименовать
+                </Menu.Item>
                 <Menu.Item onClick={toggleStaple} disabled={!product || stapleProduct.isPending}>
                   {product?.isStaple ? 'Убрать из постоянных' : 'Сделать постоянным'}
                 </Menu.Item>
@@ -140,6 +145,13 @@ export function ProductPage() {
             </SwipeActionCard>
           ))}
       </Stack>
+      {renaming && product && (
+        <RenameProductModal
+          pantryId={pantryId!}
+          product={product}
+          onClose={() => setRenaming(false)}
+        />
+      )}
       {removing && (
         <ConfirmRemoveProductModal
           pantryId={pantryId!}

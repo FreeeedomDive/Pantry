@@ -85,3 +85,8 @@ export interface WriteOffStockRequest {
 export interface StapleProductRequest {
   isStaple: boolean
 }
+
+export interface RenameProductRequest {
+  name: string
+  brand: string | null
+}
