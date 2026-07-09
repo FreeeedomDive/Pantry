@@ -1,36 +1,35 @@
 import {
   ActionIcon,
-  Alert,
   Anchor,
   Badge,
-  Button,
   Container,
   Group,
   Menu,
-  Modal,
   Stack,
   Text,
   Title,
 } from '@mantine/core'
 import { notifications } from '@mantine/notifications'
 import { useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router'
-import { describeApiError } from '../api/http'
+import { Link, useParams } from 'react-router'
+import { describeApiError } from '../../api/http.ts'
 import {
   useProductBalance,
   useProductStock,
-  useRemoveProduct,
+  useStapleProduct,
   useWriteOffStockItem,
-} from '../api/products'
-import { formatDate } from '../ui/format'
-import { EmptyState, ErrorState, LoadingState } from '../ui/states'
-import { SwipeActionCard } from '../ui/SwipeActionCard'
+} from '../../api/products.ts'
+import { formatDate } from '../../ui/format.ts'
+import { EmptyState, ErrorState, LoadingState } from '../../ui/states.tsx'
+import { SwipeActionCard } from '../../ui/SwipeActionCard.tsx'
+import { ConfirmRemoveProductModal } from './ConfirmRemoveProductModal.tsx'
 
 export function ProductPage() {
   const { pantryId, productId } = useParams<{ pantryId: string; productId: string }>()
   const balance = useProductBalance(pantryId!, productId!)
   const stock = useProductStock(pantryId!, productId!)
   const writeOff = useWriteOffStockItem(pantryId!, productId!)
+  const stapleProduct = useStapleProduct(pantryId!, productId!)
   const [removing, setRemoving] = useState(false)
 
   const product = balance.data?.product
@@ -47,6 +46,18 @@ export function ProductPage() {
           }),
       },
     )
+
+  const toggleStaple = () => {
+    if (!product) return
+    stapleProduct.mutate(!product.isStaple, {
+      onError: (error) =>
+        notifications.show({
+          color: 'red',
+          title: 'Не получилось',
+          message: describeApiError(error),
+        }),
+    })
+  }
 
   return (
     <Container size="xs" py="md">
@@ -71,6 +82,9 @@ export function ProductPage() {
                 </ActionIcon>
               </Menu.Target>
               <Menu.Dropdown>
+                <Menu.Item onClick={toggleStaple} disabled={!product || stapleProduct.isPending}>
+                  {product?.isStaple ? 'Убрать из постоянных' : 'Сделать постоянным'}
+                </Menu.Item>
                 <Menu.Item color="red" onClick={() => setRemoving(true)}>
                   Удалить товар
                 </Menu.Item>
@@ -135,45 +149,5 @@ export function ProductPage() {
         />
       )}
     </Container>
-  )
-}
-
-function ConfirmRemoveProductModal({
-  pantryId,
-  productId,
-  productName,
-  onClose,
-}: {
-  pantryId: string
-  productId: string
-  productName: string
-  onClose: () => void
-}) {
-  const navigate = useNavigate()
-  const removeProduct = useRemoveProduct(pantryId)
-
-  const confirm = () =>
-    removeProduct.mutate(productId, {
-      onSuccess: () => navigate(`/pantries/${pantryId}`),
-      onError: (error) =>
-        notifications.show({
-          color: 'red',
-          title: 'Не получилось',
-          message: describeApiError(error),
-        }),
-    })
-
-  return (
-    <Modal opened onClose={onClose} title={`Удалить «${productName}»?`} centered>
-      <Stack gap="md">
-        <Alert color="red">
-          Товар и все его партии будут удалены навсегда, а выученные сопоставления чеков по нему —
-          забыты. Действие необратимо.
-        </Alert>
-        <Button color="red" onClick={confirm} loading={removeProduct.isPending} fullWidth>
-          Удалить
-        </Button>
-      </Stack>
-    </Modal>
   )
 }
