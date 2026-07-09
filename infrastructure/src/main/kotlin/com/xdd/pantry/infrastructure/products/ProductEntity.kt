@@ -16,5 +16,6 @@ class ProductEntity(
     @Column(name = "name", nullable = false) var name: String,
     @Column(name = "brand") var brand: String?,
     @Column(name = "created_at", nullable = false) var createdAt: Instant,
+    @Column(name = "is_staple", nullable = false) var isStaple: Boolean = false,
     @Version var version: Long? = null,
 )

@@ -24,6 +24,7 @@ class ProductRepositoryAdapter(
         }
         entity.name = product.name
         entity.brand = product.brand
+        entity.isStaple = product.isStaple
         return jpa.save(entity).toDomain()
     }
 
@@ -37,4 +38,4 @@ class ProductRepositoryAdapter(
 }
 
 internal fun ProductEntity.toDomain() =
-    Product(ProductId(id), PantryId(pantryId), name, brand)
+    Product(ProductId(id), PantryId(pantryId), name, brand, isStaple)
