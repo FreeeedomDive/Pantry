@@ -1,0 +1,83 @@
+name: Detect Changes
+
+on:
+  workflow_call:
+    outputs:
+      backend:
+        description: "Backend modules or shared build files changed"
+        value: ${{ jobs.detect.outputs.backend }}
+      frontend:
+        description: "Frontend changed"
+        value: ${{ jobs.detect.outputs.frontend }}
+      migrate:
+        description: "Schema, migrator or shared build files changed"
+        value: ${{ jobs.detect.outputs.migrate }}
+      nginx:
+        description: "Nginx changed"
+        value: ${{ jobs.detect.outputs.nginx }}
+
+jobs:
+  detect:
+    name: Detect Changes
+    runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.check.outputs.backend }}
+      frontend: ${{ steps.check.outputs.frontend }}
+      migrate: ${{ steps.check.outputs.migrate }}
+      nginx: ${{ steps.check.outputs.nginx }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect changed paths
+        id: check
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BASE="${{ github.event.pull_request.base.sha }}"
+            HEAD="${{ github.event.pull_request.head.sha }}"
+          else
+            BASE="HEAD^"
+            HEAD="HEAD"
+          fi
+
+          CHANGED=$(git diff --name-only "$BASE" "$HEAD")
+
+          backend=false
+          frontend=false
+          migrate=false
+          nginx=false
+
+          # Schema migrations or migrator module -> rebuild migrator
+          if echo "$CHANGED" | grep -qE '^(schema|migrator)/|^Dockerfile\.migrator$'; then
+            migrate=true
+          fi
+
+          # Backend modules -> rebuild backend
+          if echo "$CHANGED" | grep -qE '^(domain|application|infrastructure|bootstrap)/|^Dockerfile$'; then
+            backend=true
+          fi
+
+          # Shared Gradle build files -> rebuild both backend and migrator
+          if echo "$CHANGED" | grep -qE '^(buildSrc|gradle)/|^(settings|build)\.gradle\.kts$|^gradlew(\.bat)?$'; then
+            backend=true
+            migrate=true
+          fi
+
+          # Frontend -> rebuild frontend
+          if echo "$CHANGED" | grep -qE '^frontend/'; then
+            frontend=true
+          fi
+
+          # Nginx -> rebuild nginx
+          if echo "$CHANGED" | grep -qE '^nginx/'; then
+            nginx=true
+          fi
+
+          {
+            echo "backend=$backend"
+            echo "frontend=$frontend"
+            echo "migrate=$migrate"
+            echo "nginx=$nginx"
+          } >> "$GITHUB_OUTPUT"

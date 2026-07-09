@@ -1,0 +1,24 @@
+name: Checks
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  detect-changes:
+    name: Detect Changes
+    uses: ./.github/workflows/DetectChanges.yml
+
+  tests:
+    name: Backend Tests
+    needs: [detect-changes]
+    if: ${{ needs.detect-changes.outputs.backend == 'true' || needs.detect-changes.outputs.migrate == 'true' }}
+    uses: ./.github/workflows/Tests.yml
+
+  lint:
+    name: Frontend Lint
+    needs: [detect-changes]
+    if: ${{ needs.detect-changes.outputs.frontend == 'true' }}
+    uses: ./.github/workflows/Lint.yml
