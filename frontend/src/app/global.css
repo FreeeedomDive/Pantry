@@ -1,0 +1,13 @@
+:root {
+  --app-safe-area-top: calc(
+    var(--tg-viewport-safe-area-inset-top, 0px) + var(--tg-viewport-content-safe-area-inset-top, 0px)
+  );
+  --app-safe-area-bottom: calc(
+    var(--tg-viewport-safe-area-inset-bottom, 0px) + var(--tg-viewport-content-safe-area-inset-bottom, 0px)
+  );
+}
+
+body {
+  padding-top: var(--app-safe-area-top);
+  padding-bottom: var(--app-safe-area-bottom);
+}
