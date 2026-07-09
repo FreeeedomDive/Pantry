@@ -6,6 +6,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 data class GeminiProperties(
     val recognizerApiKey: String,
     val extractorApiKey: String,
-    val model: String = "gemini-2.5-flash",
+    val model: String = "gemini-flash-latest",
     val baseUrl: String = "https://generativelanguage.googleapis.com",
 )
