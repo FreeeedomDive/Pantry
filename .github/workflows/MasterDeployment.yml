@@ -9,23 +9,19 @@ jobs:
     name: Detect Changes for Deployments
     uses: ./.github/workflows/DetectChanges.yml
 
-  migrate:
-    name: Deploy Migrator
+  deploy_backend:
+    name: Deploy Backend & Migrator
     needs: [detect-changes]
-    if: ${{ needs.detect-changes.outputs.migrate == 'true' && !failure() && !cancelled() }}
-    uses: ./.github/workflows/DeployMigrator.yml
-    secrets: inherit
-
-  deploy_telegram_bot:
-    name: Deploy TelegramBot
-    needs: [detect-changes, migrate]
-    if: ${{ needs.detect-changes.outputs.backend == 'true' && !failure() && !cancelled() }}
-    uses: ./.github/workflows/DeployTelegramBot.yml
+    if: ${{ (needs.detect-changes.outputs.migrate == 'true' || needs.detect-changes.outputs.backend == 'true') && !failure() && !cancelled() }}
+    uses: ./.github/workflows/DeployBackend.yml
+    with:
+      deploy_migrator: ${{ needs.detect-changes.outputs.migrate == 'true' }}
+      deploy_backend: ${{ needs.detect-changes.outputs.backend == 'true' }}
     secrets: inherit
 
   deploy_frontend:
     name: Deploy Frontend
-    needs: [detect-changes]
+    needs: [detect-changes, deploy_backend]
     if: ${{ needs.detect-changes.outputs.frontend == 'true' && !failure() && !cancelled() }}
     uses: ./.github/workflows/DeployFrontend.yml
     secrets: inherit

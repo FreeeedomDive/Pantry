@@ -1,9 +1,4 @@
-FROM eclipse-temurin:24-jdk AS build
+FROM eclipse-temurin:24-jre
 WORKDIR /app
-COPY . .
-RUN ./gradlew :migrator:bootJar -x test --no-daemon
-
-FROM eclipse-temurin:24-jre AS runtime
-WORKDIR /app
-COPY --from=build /app/migrator/build/libs/*.jar migrator.jar
+COPY migrator.jar migrator.jar
 ENTRYPOINT ["java", "-jar", "/app/migrator.jar"]
