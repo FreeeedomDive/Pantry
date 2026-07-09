@@ -2,10 +2,14 @@ package com.xdd.pantry.infrastructure.receipts
 
 import kotlinx.coroutines.delay
 import org.slf4j.LoggerFactory
+import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.WebClientResponseException
 import org.springframework.web.reactive.function.client.awaitBody
+import kotlin.random.Random
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 @Component
@@ -23,10 +27,12 @@ class GeminiClient(
             try {
                 return requestGemini(parts, responseSchema, apiKey)
             } catch (failure: WebClientResponseException) {
-                log.warn("Gemini responded {} on attempt {}: {}", failure.statusCode, attempt + 1, failure.responseBodyAsString)
                 attempt++
-                if (!failure.statusCode.is5xxServerError || attempt >= MAX_ATTEMPTS) throw failure
-                delay(RETRY_BACKOFF * attempt)
+                val retryable = failure.statusCode.is5xxServerError ||
+                    failure.statusCode == HttpStatus.TOO_MANY_REQUESTS
+                log.warn("Gemini responded {} on attempt {}: {}", failure.statusCode, attempt, failure.responseBodyAsString)
+                if (!retryable || attempt >= MAX_ATTEMPTS) throw failure
+                delay(backoffFor(failure, attempt))
             }
         }
     }
@@ -57,6 +63,12 @@ class GeminiClient(
         return response.candidates.firstOrNull()
             ?.content?.parts?.firstOrNull()?.text
             ?: "[]"
+    }
+
+    private fun backoffFor(failure: WebClientResponseException, attempt: Int): Duration {
+        val retryAfter = failure.headers.getFirst("Retry-After")?.toLongOrNull()?.seconds
+        val jitter = Random.nextInt(250, 750).milliseconds
+        return (retryAfter ?: RETRY_BACKOFF * attempt) + jitter
     }
 
     companion object {
