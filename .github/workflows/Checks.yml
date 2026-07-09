@@ -23,3 +23,13 @@ jobs:
     needs: [detect-changes]
     if: ${{ needs.detect-changes.outputs.frontend == 'true' }}
     uses: ./.github/workflows/Lint.yml
+
+  gate:
+    name: Checks Passed
+    needs: [detect-changes, tests, lint]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail if any check failed or was cancelled
+        if: ${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') }}
+        run: exit 1
