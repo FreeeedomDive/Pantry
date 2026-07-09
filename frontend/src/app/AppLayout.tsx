@@ -1,6 +1,7 @@
 import { backButton } from '@telegram-apps/sdk-react'
 import { useEffect } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router'
+import { EdgeBackGesture } from '../ui/EdgeBackGesture'
 
 function parentPath(pathname: string): string | null {
   if (/^\/pantries\/[^/]+\/members$/.test(pathname)) return '/'
@@ -25,5 +26,9 @@ export function AppLayout() {
     return backButton.onClick(() => navigate(parent))
   }, [parent, navigate])
 
-  return <Outlet />
+  return (
+    <EdgeBackGesture enabled={parent !== null} onBack={() => navigate(parent!)}>
+      <Outlet />
+    </EdgeBackGesture>
+  )
 }
