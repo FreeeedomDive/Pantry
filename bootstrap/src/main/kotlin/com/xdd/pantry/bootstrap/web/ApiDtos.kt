@@ -19,7 +19,7 @@ import java.time.LocalDate
 import java.util.UUID
 
 data class PantryResponse(val id: UUID, val name: String, val role: String, val isDefault: Boolean)
-data class ProductResponse(val id: UUID, val name: String, val brand: String?)
+data class ProductResponse(val id: UUID, val name: String, val brand: String?, val isStaple: Boolean)
 data class ProductBalanceResponse(val product: ProductResponse, val total: Int)
 data class StockItemResponse(val id: UUID, val quantity: Int, val purchasedAt: Instant, val expiresAt: LocalDate?)
 data class DraftLineResponse(
@@ -42,6 +42,7 @@ data class CreatePantryRequest(val name: String)
 data class RenamePantryRequest(val name: String)
 data class AddProductRequest(val name: String, val brand: String?)
 data class RenameProductRequest(val name: String, val brand: String?)
+data class StapleProductRequest(val isStaple: Boolean)
 data class AddStockRequest(val quantity: Int, val expiresAt: LocalDate?)
 data class WriteOffStockRequest(val quantity: Int)
 
@@ -75,7 +76,7 @@ fun UpdateDraftRequest.toRecognizedReceipt() = RecognizedReceipt(
 fun Pantry.toResponse(role: PantryRole, isDefault: Boolean) = PantryResponse(id.value, name, role.name, isDefault)
 fun UserPantry.toResponse() = pantry.toResponse(role, isDefault)
 fun PantryMemberInfo.toResponse() = PantryMemberResponse(telegramUserId.value, role.name, joinedAt)
-fun Product.toResponse() = ProductResponse(id.value, name, brand)
+fun Product.toResponse() = ProductResponse(id.value, name, brand, isStaple)
 fun ProductBalance.toResponse() = ProductBalanceResponse(product.toResponse(), total)
 fun StockItem.toResponse() = StockItemResponse(id.value, quantity.value, purchasedAt, expiresAt)
 fun DraftLine.toResponse() = DraftLineResponse(

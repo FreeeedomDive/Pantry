@@ -15,4 +15,5 @@ data class Product(
     val pantryId: PantryId,
     val name: String,
     val brand: String?,
+    val isStaple: Boolean = false,
 )

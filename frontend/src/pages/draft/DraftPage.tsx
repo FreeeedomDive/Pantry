@@ -2,21 +2,21 @@ import { Alert, Anchor, Button, Container, Stack, Text, Title } from '@mantine/c
 import { notifications } from '@mantine/notifications'
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
-import { useConfirmDraft, useDraft, useUpdateDraft } from '../api/drafts'
-import { ApiError, describeApiError } from '../api/http'
-import { useProducts } from '../api/products'
-import { closeApp } from '../telegram/close'
+import { useConfirmDraft, useDraft, useUpdateDraft } from '../../api/drafts.ts'
+import { ApiError, describeApiError } from '../../api/http.ts'
+import { useProducts } from '../../api/products.ts'
+import { closeApp } from '../../telegram/close.ts'
 import type {
   DraftLineInput,
   DraftLineResponse,
   DraftResponse,
   ProductResponse,
-} from '../api/types'
-import { ErrorState, LoadingState } from '../ui/states'
-import { DraftLineCard } from './draft/DraftLineCard'
-import { EditLineModal } from './draft/EditLineModal'
-import { MoveDraftModal } from './draft/MoveDraftModal'
-import { resolveLine, willBeApplied } from './draft/lineStatus'
+} from '../../api/types.ts'
+import { ErrorState, LoadingState } from '../../ui/states.tsx'
+import { DraftLineCard } from './DraftLineCard.tsx'
+import { EditLineModal } from './EditLineModal.tsx'
+import { MoveDraftModal } from './MoveDraftModal.tsx'
+import { resolveLine, willBeApplied } from './lineStatus.ts'
 
 function toInput(line: DraftLineResponse): DraftLineInput {
   return {

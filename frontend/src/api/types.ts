@@ -22,6 +22,7 @@ export interface ProductResponse {
   id: string
   name: string
   brand: string | null
+  isStaple: boolean
 }
 
 export interface ProductBalanceResponse {
@@ -79,4 +80,13 @@ export interface CreatePantryRequest {
 
 export interface WriteOffStockRequest {
   quantity: number
+}
+
+export interface StapleProductRequest {
+  isStaple: boolean
+}
+
+export interface RenameProductRequest {
+  name: string
+  brand: string | null
 }

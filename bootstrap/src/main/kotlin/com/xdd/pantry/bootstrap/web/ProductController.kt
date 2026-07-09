@@ -5,6 +5,7 @@ import com.xdd.pantry.application.products.GetPantryBalanceUseCase
 import com.xdd.pantry.application.products.GetPantryProductsUseCase
 import com.xdd.pantry.application.products.RemoveProductUseCase
 import com.xdd.pantry.application.products.RenameProductUseCase
+import com.xdd.pantry.application.products.StapleProductUseCase
 import com.xdd.pantry.domain.pantries.PantryId
 import com.xdd.pantry.domain.products.ProductId
 import com.xdd.pantry.domain.users.UserId
@@ -25,6 +26,7 @@ class ProductController(
     private val getPantryBalance: GetPantryBalanceUseCase,
     private val addProduct: AddProductUseCase,
     private val renameProduct: RenameProductUseCase,
+    private val stapleProduct: StapleProductUseCase,
     private val removeProduct: RemoveProductUseCase,
 ) {
     @GetMapping("/products")
@@ -43,7 +45,7 @@ class ProductController(
     ): ProductResponse =
         addProduct.addProduct(userId, PantryId(pantryId), request.name, request.brand).toResponse()
 
-    @PatchMapping("/products/{productId}")
+    @PatchMapping("/products/{productId}/name")
     fun rename(
         @CurrentUser userId: UserId,
         @PathVariable pantryId: UUID,
@@ -51,6 +53,15 @@ class ProductController(
         @RequestBody request: RenameProductRequest,
     ): ProductResponse =
         renameProduct.renameProduct(userId, PantryId(pantryId), ProductId(productId), request.name, request.brand).toResponse()
+
+    @PatchMapping("/products/{productId}/staple")
+    fun staple(
+        @CurrentUser userId: UserId,
+        @PathVariable pantryId: UUID,
+        @PathVariable productId: UUID,
+        @RequestBody request: StapleProductRequest,
+    ): ProductResponse =
+        stapleProduct.stapleProduct(userId, PantryId(pantryId), ProductId(productId), request.isStaple).toResponse()
 
     @DeleteMapping("/products/{productId}")
     fun remove(@CurrentUser userId: UserId, @PathVariable pantryId: UUID, @PathVariable productId: UUID) {

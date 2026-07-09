@@ -22,10 +22,10 @@ import {
   usePantries,
   useRenamePantry,
   useSetDefaultPantry,
-} from '../api/pantries'
-import { ApiError, describeApiError } from '../api/http'
-import type { PantryResponse } from '../api/types'
-import { EmptyState, ErrorState, LoadingState } from '../ui/states'
+} from '../../api/pantries.ts'
+import { ApiError, describeApiError } from '../../api/http.ts'
+import type { PantryResponse } from '../../api/types.ts'
+import { EmptyState, ErrorState, LoadingState } from '../../ui/states.tsx'
 
 export function PantriesPage() {
   const pantries = usePantries()

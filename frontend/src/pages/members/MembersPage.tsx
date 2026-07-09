@@ -13,11 +13,11 @@ import {
 import { notifications } from '@mantine/notifications'
 import { initData, openTelegramLink, useSignal } from '@telegram-apps/sdk-react'
 import { Link, useParams } from 'react-router'
-import { describeApiError } from '../api/http'
-import { useCreateInvite, usePantry, usePantryMembers } from '../api/pantries'
-import type { InviteResponse } from '../api/types'
-import { formatDate } from '../ui/format'
-import { ErrorState, LoadingState } from '../ui/states'
+import { describeApiError } from '../../api/http.ts'
+import { useCreateInvite, usePantry, usePantryMembers } from '../../api/pantries.ts'
+import type { InviteResponse } from '../../api/types.ts'
+import { formatDate } from '../../ui/format.ts'
+import { ErrorState, LoadingState } from '../../ui/states.tsx'
 
 export function MembersPage() {
   const { pantryId } = useParams<{ pantryId: string }>()

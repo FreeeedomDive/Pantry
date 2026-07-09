@@ -3,6 +3,8 @@ import { api } from './http'
 import type {
   ProductBalanceResponse,
   ProductResponse,
+  RenameProductRequest,
+  StapleProductRequest,
   StockItemResponse,
   WriteOffStockRequest,
 } from './types'
@@ -34,6 +36,38 @@ export function useProductStock(pantryId: string, productId: string) {
     queryKey: ['pantries', pantryId, 'products', productId, 'stock'],
     queryFn: () =>
       api.get<StockItemResponse[]>(`/pantries/${pantryId}/products/${productId}/stock`),
+  })
+}
+
+export function useRenameProduct(pantryId: string, productId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (request: RenameProductRequest) =>
+      api.patch<ProductResponse>(`/pantries/${pantryId}/products/${productId}/name`, request),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['pantries', pantryId, 'balance'] })
+      void queryClient.invalidateQueries({
+        queryKey: ['pantries', pantryId, 'products'],
+        refetchType: 'none',
+      })
+    },
+  })
+}
+
+export function useStapleProduct(pantryId: string, productId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (isStaple: boolean) => {
+      const body: StapleProductRequest = { isStaple }
+      return api.patch<ProductResponse>(`/pantries/${pantryId}/products/${productId}/staple`, body)
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['pantries', pantryId, 'balance'] })
+      void queryClient.invalidateQueries({
+        queryKey: ['pantries', pantryId, 'products'],
+        refetchType: 'none',
+      })
+    },
   })
 }
 

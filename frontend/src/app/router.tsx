@@ -1,9 +1,9 @@
 import { createBrowserRouter } from 'react-router'
-import { DraftPage } from '../pages/DraftPage'
-import { MembersPage } from '../pages/MembersPage'
-import { PantriesPage } from '../pages/PantriesPage'
-import { PantryPage } from '../pages/PantryPage'
-import { ProductPage } from '../pages/ProductPage'
+import { DraftPage } from '../pages/draft/DraftPage.tsx'
+import { MembersPage } from '../pages/members/MembersPage.tsx'
+import { PantriesPage } from '../pages/pantry/PantriesPage.tsx'
+import { PantryPage } from '../pages/pantry/PantryPage.tsx'
+import { ProductPage } from '../pages/product/ProductPage.tsx'
 import { AppLayout } from './AppLayout'
 
 export const router = createBrowserRouter([
