@@ -117,7 +117,7 @@ function PantryCard({ pantry }: { pantry: PantryResponse }) {
                   </Menu.Item>
                 )}
                 <Menu.Item onClick={stopAnd(() => navigate(`/pantries/${pantry.id}/members`))}>
-                  Владельцы
+                  Участники
                 </Menu.Item>
                 <Menu.Item color="red" onClick={stopAnd(() => setConfirming(true))}>
                   {pantry.role === 'OWNER' ? 'Удалить' : 'Покинуть'}

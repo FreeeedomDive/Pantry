@@ -4,6 +4,7 @@ import com.xdd.pantry.application.pantries.CreateNewPantryUseCase
 import com.xdd.pantry.application.pantries.CreatePantryInviteUseCase
 import com.xdd.pantry.application.pantries.GetPantryMembersUseCase
 import com.xdd.pantry.application.pantries.GetUserPantriesUseCase
+import com.xdd.pantry.application.pantries.KickPantryMemberUseCase
 import com.xdd.pantry.application.pantries.LeaveOrDeletePantryUseCase
 import com.xdd.pantry.application.pantries.RenamePantryUseCase
 import com.xdd.pantry.application.pantries.SetDefaultPantryUseCase
@@ -31,6 +32,7 @@ class PantryController(
     private val setDefaultPantry: SetDefaultPantryUseCase,
     private val leaveOrDeletePantry: LeaveOrDeletePantryUseCase,
     private val getPantryMembers: GetPantryMembersUseCase,
+    private val kickPantryMember: KickPantryMemberUseCase,
     private val createPantryInvite: CreatePantryInviteUseCase,
     private val inviteLinks: InviteLinkBuilder,
     private val userDefaults: UserDefaultsRepository,
@@ -68,6 +70,15 @@ class PantryController(
     @GetMapping("/{pantryId}/members")
     fun members(@CurrentUser userId: UserId, @PathVariable pantryId: UUID): List<PantryMemberResponse> =
         getPantryMembers.getPantryMembers(userId, PantryId(pantryId)).map { it.toResponse() }
+
+    @DeleteMapping("/{pantryId}/members/{userId}")
+    fun kickMember(
+        @CurrentUser ownerId: UserId,
+        @PathVariable pantryId: UUID,
+        @PathVariable userId: UUID,
+    ) {
+        kickPantryMember.kickPantryMember(PantryId(pantryId), ownerId, UserId(userId))
+    }
 
     @PostMapping("/{pantryId}/invites")
     fun createInvite(@CurrentUser userId: UserId, @PathVariable pantryId: UUID): InviteResponse {

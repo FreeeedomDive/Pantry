@@ -28,7 +28,7 @@ class GetPantryMembersUseCaseTest {
     private val member = User(UserId(UUID.randomUUID()), TelegramUserId(2L), Instant.now())
 
     @Test
-    fun `returns members with telegram ids, owner first`() {
+    fun `returns members with ids, telegram ids, owner first`() {
         val ownerJoined = Instant.parse("2026-01-01T00:00:00Z")
         val memberJoined = Instant.parse("2026-02-01T00:00:00Z")
         every { guard.checkAccess(pantryId, member.id) } returns
@@ -42,8 +42,8 @@ class GetPantryMembersUseCaseTest {
         val members = useCase.getPantryMembers(member.id, pantryId)
 
         members shouldBe listOf(
-            PantryMemberInfo(owner.telegramUserId, PantryRole.OWNER, ownerJoined),
-            PantryMemberInfo(member.telegramUserId, PantryRole.MEMBER, memberJoined),
+            PantryMemberInfo(owner.id, owner.telegramUserId, PantryRole.OWNER, ownerJoined),
+            PantryMemberInfo(member.id, member.telegramUserId, PantryRole.MEMBER, memberJoined),
         )
     }
 

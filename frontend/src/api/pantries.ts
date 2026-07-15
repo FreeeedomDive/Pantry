@@ -64,6 +64,16 @@ export function usePantryMembers(pantryId: string) {
   })
 }
 
+export function useKickPantryMember(pantryId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (userId: string) => api.delete(`/pantries/${pantryId}/members/${userId}`),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['pantries', pantryId, 'members'] })
+    },
+  })
+}
+
 export function useCreateInvite(pantryId: string) {
   return useMutation({
     mutationFn: () => api.post<InviteResponse>(`/pantries/${pantryId}/invites`),
