@@ -8,6 +8,7 @@ export interface PantryResponse {
 }
 
 export interface PantryMemberResponse {
+  userId: string
   telegramUserId: number
   role: PantryRole
   joinedAt: string

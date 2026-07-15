@@ -35,7 +35,7 @@ data class DraftLineResponse(
 )
 data class DraftResponse(val id: UUID, val pantryId: UUID, val status: String, val lines: List<DraftLineResponse>)
 
-data class PantryMemberResponse(val telegramUserId: Long, val role: String, val joinedAt: Instant)
+data class PantryMemberResponse(val userId: UUID, val telegramUserId: Long, val role: String, val joinedAt: Instant)
 data class InviteResponse(val link: String, val expiresAt: Instant)
 
 data class CreatePantryRequest(val name: String)
@@ -75,7 +75,7 @@ fun UpdateDraftRequest.toRecognizedReceipt() = RecognizedReceipt(
 
 fun Pantry.toResponse(role: PantryRole, isDefault: Boolean) = PantryResponse(id.value, name, role.name, isDefault)
 fun UserPantry.toResponse() = pantry.toResponse(role, isDefault)
-fun PantryMemberInfo.toResponse() = PantryMemberResponse(telegramUserId.value, role.name, joinedAt)
+fun PantryMemberInfo.toResponse() = PantryMemberResponse(userId.value, telegramUserId.value, role.name, joinedAt)
 fun Product.toResponse() = ProductResponse(id.value, name, brand, isStaple)
 fun ProductBalance.toResponse() = ProductBalanceResponse(product.toResponse(), total)
 fun StockItem.toResponse() = StockItemResponse(id.value, quantity.value, purchasedAt, expiresAt)

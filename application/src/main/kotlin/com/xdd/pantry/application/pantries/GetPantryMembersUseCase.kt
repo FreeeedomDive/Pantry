@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service
 import java.time.Instant
 
 data class PantryMemberInfo(
+    val userId: UserId,
     val telegramUserId: TelegramUserId,
     val role: PantryRole,
     val joinedAt: Instant,
@@ -27,6 +28,7 @@ class GetPantryMembersUseCase(
         return members
             .map { member ->
                 PantryMemberInfo(
+                    userId = member.userId,
                     telegramUserId = usersById.getValue(member.userId).telegramUserId,
                     role = member.role,
                     joinedAt = member.joinedAt,
