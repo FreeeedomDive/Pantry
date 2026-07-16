@@ -43,6 +43,9 @@ class GeminiReceiptExtractor(
               Drop receipt formatting that is not part of the product name: leading item/PLU
               codes, trailing line codes (like ":8" or "%3") and section markers (like "<В>").
             - quantity: the amount, or 1 if not stated.
+            Combine lines only when their product names are exactly identical after removing receipt
+            formatting. Return one line for them and set quantity to the sum of their quantities.
+            Do not combine similar products with any difference in brand or descriptive attributes.
             Do not classify or match anything. Skip totals, discounts, section headers and payment lines.
         """.trimIndent()
 
