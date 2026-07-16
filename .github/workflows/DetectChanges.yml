@@ -15,6 +15,9 @@ on:
       frontend:
         description: "Frontend changed"
         value: ${{ jobs.detect.outputs.frontend }}
+      frontend_deploy:
+        description: "Deployable frontend application files changed"
+        value: ${{ jobs.detect.outputs.frontend_deploy }}
       migrate:
         description: "Schema, migrator or shared build files changed"
         value: ${{ jobs.detect.outputs.migrate }}
@@ -32,6 +35,7 @@ jobs:
     outputs:
       backend: ${{ steps.check.outputs.backend }}
       frontend: ${{ steps.check.outputs.frontend }}
+      frontend_deploy: ${{ steps.check.outputs.frontend_deploy }}
       migrate: ${{ steps.check.outputs.migrate }}
       nginx: ${{ steps.check.outputs.nginx }}
       e2e: ${{ steps.check.outputs.e2e }}
@@ -57,6 +61,7 @@ jobs:
 
           backend=false
           frontend=false
+          frontend_deploy=false
           migrate=false
           nginx=false
           e2e=false
@@ -77,9 +82,14 @@ jobs:
             migrate=true
           fi
 
-          # Frontend -> rebuild frontend
+          # Any frontend change -> run frontend checks
           if echo "$CHANGED" | grep -qE '^frontend/'; then
             frontend=true
+          fi
+
+          # Frontend tests and Playwright configuration require checks, but not a production deploy.
+          if echo "$CHANGED" | grep -E '^frontend/' | grep -qEv '^frontend/(e2e/|playwright\.config\.ts$|.*/__tests__/|.*\.(test|spec)\.(ts|tsx|js|jsx)$)'; then
+            frontend_deploy=true
           fi
 
           # Nginx -> rebuild nginx
@@ -98,6 +108,7 @@ jobs:
           {
             echo "backend=$backend"
             echo "frontend=$frontend"
+            echo "frontend_deploy=$frontend_deploy"
             echo "migrate=$migrate"
             echo "nginx=$nginx"
             echo "e2e=$e2e"
