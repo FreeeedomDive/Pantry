@@ -22,7 +22,7 @@ jobs:
   deploy_frontend:
     name: Deploy Frontend
     needs: [detect-changes, deploy_backend]
-    if: ${{ needs.detect-changes.outputs.frontend == 'true' && !failure() && !cancelled() }}
+    if: ${{ needs.detect-changes.outputs.frontend_deploy == 'true' && !failure() && !cancelled() }}
     uses: ./.github/workflows/DeployFrontend.yml
     secrets: inherit
 

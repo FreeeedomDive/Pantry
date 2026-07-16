@@ -1,4 +1,4 @@
-import { createHmac } from 'node:crypto'
+import { createHash, createHmac, randomBytes } from 'node:crypto'
 
 export const E2E_TELEGRAM_BOT_TOKEN = '123456:e2e-test-token'
 const E2E_USER_ID_BASE = 900_000_000
@@ -14,16 +14,23 @@ export interface E2eTelegramIdentity {
   photoUrl?: string
 }
 
-export function createE2eTelegramIdentity(index = 0): E2eTelegramIdentity {
+export function createE2eTelegramIdentity(key: string): E2eTelegramIdentity {
+  const digest = createHash('sha256').update(key).digest()
+  const identityIndex = digest.readUIntBE(0, 6)
+  const usernameSuffix = digest.subarray(0, 8).toString('hex')
+
   return {
-    id: E2E_USER_ID_BASE + index,
-    username: `pantry_e2e_${index}`,
+    id: E2E_USER_ID_BASE + identityIndex,
+    username: `pantry_e2e_${usernameSuffix}`,
     firstName: 'E2E',
     languageCode: 'en',
   }
 }
 
-export function createE2eInitData(identity: E2eTelegramIdentity): string {
+export function createE2eInitData(
+  identity: E2eTelegramIdentity,
+  { authDate = Math.floor(Date.now() / 1_000) }: { authDate?: number } = {},
+): string {
   const user = {
     id: identity.id,
     first_name: identity.firstName,
@@ -37,8 +44,8 @@ export function createE2eInitData(identity: E2eTelegramIdentity): string {
     ...(identity.photoUrl === undefined ? {} : { photo_url: identity.photoUrl }),
   }
   const fields = {
-    auth_date: String(Math.floor(Date.now() / 1_000)),
-    query_id: `AAE-e2e-${identity.id}`,
+    auth_date: String(authDate),
+    query_id: `AAE-e2e-${identity.id}-${randomBytes(8).toString('hex')}`,
     signature: 'e2e-unchecked-by-backend',
     user: JSON.stringify(user),
   }

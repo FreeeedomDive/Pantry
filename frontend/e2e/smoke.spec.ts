@@ -1,42 +1,57 @@
 import { expect, test } from './fixtures.js'
 
-test('new signed Telegram user can open the application', async ({ identity, page }, testInfo) => {
-  const consoleMessages: string[] = []
-  page.on('console', (message) => consoleMessages.push(`[${message.type()}] ${message.text()}`))
-  page.on('pageerror', (error) => consoleMessages.push(`[pageerror] ${error.message}`))
+test('E2E-001: new signed Telegram user can open the application', async (
+  { identity, initData, page },
+  testInfo,
+) => {
+  const diagnostics: string[] = []
+  page.on('console', (message) => {
+    const location = message.location().url
+    diagnostics.push(
+      `[console:${message.type()}] ${location ? new URL(location).pathname : '<unknown>'}`,
+    )
+  })
+  page.on('pageerror', (error) => diagnostics.push(`[pageerror] ${error.name}`))
   page.on('request', (request) => {
-    if (request.url().endsWith('/api/pantries')) {
-      consoleMessages.push(
-        `[request] authorization=${request.headers().authorization ?? 'missing'}`,
+    if (new URL(request.url()).pathname === '/api/pantries') {
+      diagnostics.push(
+        `[request] ${request.method()} /api/pantries authorization=${request.headers().authorization?.startsWith('tma ') ? 'tma-present' : 'missing'}`,
       )
+    }
+  })
+  page.on('response', (response) => {
+    if (new URL(response.url()).pathname === '/api/pantries') {
+      diagnostics.push(`[response] ${response.status()} /api/pantries`)
     }
   })
 
   try {
-    const firstPantriesRequest = page.waitForRequest((request) =>
-      request.url().endsWith('/api/pantries'),
+    const firstPantriesResponse = page.waitForResponse(
+      (response) =>
+        response.request().method() === 'GET' &&
+        new URL(response.url()).pathname === '/api/pantries',
     )
     await page.goto('/')
 
-    const authorization = (await firstPantriesRequest).headers().authorization
-    expect(authorization).toBeDefined()
-    const initData = new URLSearchParams(authorization?.replace(/^tma /, ''))
-    expect(JSON.parse(initData.get('user') ?? '{}')).toMatchObject({
+    const response = await firstPantriesResponse
+    const authorization = response.request().headers().authorization
+    expect(authorization).toBe(`tma ${initData}`)
+    expect(response.status()).toBe(200)
+
+    const authorizationData = new URLSearchParams(authorization.replace(/^tma /, ''))
+    expect(JSON.parse(authorizationData.get('user') ?? '{}')).toMatchObject({
       id: identity.id,
       username: identity.username,
     })
 
     await expect(page.getByRole('heading', { name: 'Мои инвентари' })).toBeVisible()
-    await expect(page.getByText('Default', { exact: true })).toBeVisible()
-
-    const reloadedPantriesRequest = page.waitForRequest((request) =>
-      request.url().endsWith('/api/pantries'),
-    )
-    await page.reload()
-    expect((await reloadedPantriesRequest).headers().authorization).toBe(authorization)
+    const defaultPantry = page.getByRole('link', { name: /Default/ })
+    await expect(defaultPantry).toHaveCount(1)
+    await expect(defaultPantry).toContainText('Владелец')
+    await expect(defaultPantry).toContainText('По умолчанию')
   } finally {
-    await testInfo.attach('browser-console.txt', {
-      body: consoleMessages.join('\n'),
+    await testInfo.attach('browser-diagnostics.txt', {
+      body: diagnostics.join('\n'),
       contentType: 'text/plain',
     })
   }

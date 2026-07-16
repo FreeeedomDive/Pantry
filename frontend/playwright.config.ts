@@ -9,7 +9,7 @@ export default defineConfig({
   testDir: './e2e',
   outputDir: 'test-results',
   fullyParallel: false,
-  workers: 1,
+  workers: 2,
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI
     ? [['list'], ['github'], ['html', { open: 'never' }]]
@@ -33,7 +33,7 @@ export default defineConfig({
       cwd: repositoryDirectory,
       url: 'http://127.0.0.1:8081/api/pantries',
       timeout: 180_000,
-      reuseExistingServer: !process.env.CI,
+      reuseExistingServer: false,
       stdout: 'pipe',
       stderr: 'pipe',
     },
@@ -43,7 +43,7 @@ export default defineConfig({
       cwd: frontendDirectory,
       url: 'http://127.0.0.1:5174',
       timeout: 60_000,
-      reuseExistingServer: !process.env.CI,
+      reuseExistingServer: false,
       stdout: 'pipe',
       stderr: 'pipe',
     },

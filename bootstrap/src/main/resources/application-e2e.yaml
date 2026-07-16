@@ -24,5 +24,6 @@ gemini:
 
 telegram:
   bot-token: "123456:e2e-test-token"
+  bot-username: pantry_e2e
   bot-enabled: false
   web-app-url: http://127.0.0.1:8089
