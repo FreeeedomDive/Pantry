@@ -1,11 +1,9 @@
 import { defineConfig, devices } from '@playwright/test'
 import { fileURLToPath } from 'node:url'
 import { dirname, resolve } from 'node:path'
-import { createE2eInitData } from './e2e/telegram.js'
 
 const frontendDirectory = dirname(fileURLToPath(import.meta.url))
 const repositoryDirectory = resolve(frontendDirectory, '..')
-const initData = createE2eInitData()
 
 export default defineConfig({
   testDir: './e2e',
@@ -48,7 +46,6 @@ export default defineConfig({
       reuseExistingServer: !process.env.CI,
       stdout: 'pipe',
       stderr: 'pipe',
-      env: { VITE_DEBUG_INIT_DATA: initData },
     },
   ],
 })

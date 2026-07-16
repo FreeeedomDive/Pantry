@@ -1,8 +1,20 @@
 import { mockTelegramEnv } from '@telegram-apps/sdk-react'
 
+declare global {
+  interface Window {
+    __PANTRY_E2E_TELEGRAM_INIT_DATA__?: string
+  }
+}
+
+function initDataForCurrentMode(): string | undefined {
+  if (import.meta.env.MODE === 'e2e') return window.__PANTRY_E2E_TELEGRAM_INIT_DATA__
+  if (import.meta.env.DEV) return import.meta.env.VITE_DEBUG_INIT_DATA
+  return undefined
+}
+
 export function mockTelegramEnvForDev() {
-  const initData = import.meta.env.VITE_DEBUG_INIT_DATA
-  if ((!import.meta.env.DEV && import.meta.env.MODE !== 'e2e') || !initData) return
+  const initData = initDataForCurrentMode()
+  if (!initData) return
 
   try {
     mockTelegramEnv({
