@@ -27,7 +27,9 @@ class TelegramBotConfig {
         bot: PantryTelegramBot,
         properties: TelegramProperties,
     ) = ApplicationRunner {
-        if (properties.botToken.isBlank()) {
+        if (!properties.botEnabled) {
+            log.info("telegram bot polling is disabled")
+        } else if (properties.botToken.isBlank()) {
             log.warn("telegram.bot-token is blank, telegram bot is disabled")
         } else {
             botsApplication.registerBot(properties.botToken, bot)

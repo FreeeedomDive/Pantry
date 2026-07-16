@@ -11,7 +11,11 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier --write src",
     "format:check": "prettier --check src",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "e2e:build": "vite build --mode e2e",
+    "e2e:preview": "vite preview --host 0.0.0.0 --port 5174 --strictPort",
+    "e2e": "playwright test",
+    "e2e:typecheck": "tsc --noEmit -p e2e/tsconfig.json"
   },
   "dependencies": {
     "@mantine/core": "^9.4.1",
@@ -30,6 +34,7 @@
     "@emnapi/runtime": "^1.11.2",
     "@eslint/js": "^10.0.1",
     "@napi-rs/wasm-runtime": "^1.1.6",
+    "@playwright/test": "^1.61.1",
     "@types/node": "^24.13.2",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",

@@ -6,4 +6,5 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 data class TelegramProperties(
     val botToken: String = "",
     val webAppUrl: String = "",
+    val botEnabled: Boolean = true,
 )
