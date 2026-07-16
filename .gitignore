@@ -41,3 +41,5 @@ out/
 .kotlin
 .claude
 frontend/*.md
+frontend/playwright-report/
+frontend/test-results/

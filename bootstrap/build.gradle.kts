@@ -1,3 +1,5 @@
+import org.springframework.boot.gradle.tasks.run.BootRun
+
 plugins {
     id("pantry.spring-conventions")
     id("pantry.testing")
@@ -26,4 +28,13 @@ dependencies {
 tasks.bootRun {
     workingDir = rootProject.projectDir
     args("--spring.profiles.active=local")
+}
+
+tasks.register<BootRun>("bootRunE2e") {
+    group = "application"
+    description = "Runs Pantry with the isolated e2e profile."
+    workingDir = rootProject.projectDir
+    classpath = sourceSets["main"].runtimeClasspath
+    mainClass.set("com.xdd.pantry.bootstrap.PantryApplicationKt")
+    args("--spring.profiles.active=e2e")
 }

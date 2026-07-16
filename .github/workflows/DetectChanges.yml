@@ -21,6 +21,9 @@ on:
       nginx:
         description: "Nginx changed"
         value: ${{ jobs.detect.outputs.nginx }}
+      e2e:
+        description: "E2E-relevant application or infrastructure changed"
+        value: ${{ jobs.detect.outputs.e2e }}
 
 jobs:
   detect:
@@ -31,6 +34,7 @@ jobs:
       frontend: ${{ steps.check.outputs.frontend }}
       migrate: ${{ steps.check.outputs.migrate }}
       nginx: ${{ steps.check.outputs.nginx }}
+      e2e: ${{ steps.check.outputs.e2e }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -55,6 +59,7 @@ jobs:
           frontend=false
           migrate=false
           nginx=false
+          e2e=false
 
           # Schema migrations or migrator module -> rebuild migrator
           if echo "$CHANGED" | grep -qE '^(schema|migrator)/|^Dockerfile\.migrator$'; then
@@ -82,9 +87,18 @@ jobs:
             nginx=true
           fi
 
+          # E2E covers the complete frontend/backend path plus its own infrastructure.
+          if [ "$backend" = true ] || [ "$frontend" = true ] || [ "$migrate" = true ] || [ "$nginx" = true ]; then
+            e2e=true
+          fi
+          if echo "$CHANGED" | grep -qE '^(compose\.e2e\.yaml|scripts/run-e2e\.sh|\.github/workflows/(E2E|Checks|DetectChanges)\.yml)$'; then
+            e2e=true
+          fi
+
           {
             echo "backend=$backend"
             echo "frontend=$frontend"
             echo "migrate=$migrate"
             echo "nginx=$nginx"
+            echo "e2e=$e2e"
           } >> "$GITHUB_OUTPUT"

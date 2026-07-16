@@ -2,7 +2,7 @@ import { mockTelegramEnv } from '@telegram-apps/sdk-react'
 
 export function mockTelegramEnvForDev() {
   const initData = import.meta.env.VITE_DEBUG_INIT_DATA
-  if (!import.meta.env.DEV || !initData) return
+  if ((!import.meta.env.DEV && import.meta.env.MODE !== 'e2e') || !initData) return
 
   try {
     mockTelegramEnv({

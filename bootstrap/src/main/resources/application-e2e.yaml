@@ -1,0 +1,28 @@
+server:
+  port: 8081
+
+spring:
+  datasource:
+    url: jdbc:postgresql://127.0.0.1:55433/pantry_e2e
+    username: pantry_e2e
+    password: pantry_e2e
+  rabbitmq:
+    host: 127.0.0.1
+    port: 55673
+    username: pantry_e2e
+    password: pantry_e2e
+  flyway:
+    enabled: true
+  docker:
+    compose:
+      enabled: false
+
+gemini:
+  recognizer-api-key: e2e-dummy-key
+  extractor-api-key: e2e-dummy-key
+  base-url: http://127.0.0.1:9
+
+telegram:
+  bot-token: "123456:e2e-test-token"
+  bot-enabled: false
+  web-app-url: http://127.0.0.1:8089
