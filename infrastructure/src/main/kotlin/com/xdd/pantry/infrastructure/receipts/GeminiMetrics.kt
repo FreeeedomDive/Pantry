@@ -2,15 +2,28 @@ package com.xdd.pantry.infrastructure.receipts
 
 import com.xdd.pantry.infrastructure.telemetry.PantryTelemetry
 import com.xdd.pantry.infrastructure.telemetry.histogramTimer
+import io.micrometer.core.instrument.Gauge
 import io.micrometer.core.instrument.MeterRegistry
 import kotlinx.coroutines.CancellationException
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClientResponseException
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicLong
 
 @Component
 class GeminiMetrics(private val registry: MeterRegistry) {
+
+    private val lastCallMillis = OPERATIONS.associateWith { AtomicLong(0) }
+
+    init {
+        lastCallMillis.forEach { (operation, millis) ->
+            Gauge.builder(PantryTelemetry.GEMINI_LAST_CALL_DURATION) { millis.get() / MILLIS_PER_SECOND.toDouble() }
+                .tag(PantryTelemetry.Tag.OPERATION, operation)
+                .baseUnit(SECONDS)
+                .register(registry)
+        }
+    }
 
     fun recordCall(operation: String, model: String, outcome: String, nanos: Long) {
         registry.counter(
@@ -28,6 +41,8 @@ class GeminiMetrics(private val registry: MeterRegistry) {
             PantryTelemetry.Tag.MODEL, model,
             PantryTelemetry.Tag.OUTCOME, outcome,
         ).record(nanos, TimeUnit.NANOSECONDS)
+
+        lastCallMillis[operation]?.set(TimeUnit.NANOSECONDS.toMillis(nanos))
     }
 
     fun recordRetry(operation: String, reason: String) {
@@ -63,5 +78,11 @@ class GeminiMetrics(private val registry: MeterRegistry) {
             }
         }
         else -> PantryTelemetry.Outcome.ERROR
+    }
+
+    companion object {
+        private const val SECONDS = "seconds"
+        private const val MILLIS_PER_SECOND = 1000L
+        private val OPERATIONS = listOf(PantryTelemetry.Operation.EXTRACT, PantryTelemetry.Operation.RECOGNIZE)
     }
 }

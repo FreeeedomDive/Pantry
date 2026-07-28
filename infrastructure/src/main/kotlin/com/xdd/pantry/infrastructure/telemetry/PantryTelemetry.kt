@@ -8,10 +8,16 @@ object PantryTelemetry {
     const val RECEIPTS = "pantry.receipts"
     const val RECEIPT_POSITIONS = "pantry.receipt.positions"
 
+    const val RECEIPT_LAST_SUCCESS_TIMESTAMP = "pantry.receipt.last.success.timestamp.seconds"
+    const val RECEIPT_LAST_PIPELINE_DURATION = "pantry.receipt.last.pipeline.duration.seconds"
+    const val RECEIPT_LAST_STAGE_DURATION = "pantry.receipt.last.stage.duration.seconds"
+    const val RECEIPT_LAST_POSITIONS = "pantry.receipt.last.positions"
+
     const val GEMINI_CALLS = "pantry.gemini.calls"
     const val GEMINI_CALL_DURATION = "pantry.gemini.call.duration"
     const val GEMINI_RETRIES = "pantry.gemini.retries"
     const val GEMINI_TOKENS = "pantry.gemini.tokens"
+    const val GEMINI_LAST_CALL_DURATION = "pantry.gemini.last.call.duration.seconds"
 
     const val TELEGRAM_UPDATES = "pantry.telegram.updates"
 

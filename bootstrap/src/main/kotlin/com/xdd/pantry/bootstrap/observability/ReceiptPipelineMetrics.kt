@@ -3,12 +3,39 @@ package com.xdd.pantry.bootstrap.observability
 import com.xdd.pantry.infrastructure.telemetry.PantryTelemetry
 import com.xdd.pantry.infrastructure.telemetry.histogramTimer
 import io.micrometer.core.instrument.DistributionSummary
+import io.micrometer.core.instrument.Gauge
 import io.micrometer.core.instrument.MeterRegistry
 import org.springframework.stereotype.Component
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicLong
 
 @Component
 class ReceiptPipelineMetrics(private val registry: MeterRegistry) {
+
+    private val lastSuccessEpochSeconds = AtomicLong(System.currentTimeMillis() / MILLIS_PER_SECOND)
+    private val lastPipelineMillis = AtomicLong(0)
+    private val lastPositions = AtomicLong(0)
+    private val lastStageMillis = STAGES.associateWith { AtomicLong(0) }
+
+    init {
+        Gauge.builder(PantryTelemetry.RECEIPT_LAST_SUCCESS_TIMESTAMP) { lastSuccessEpochSeconds.get().toDouble() }
+            .baseUnit(SECONDS)
+            .register(registry)
+
+        Gauge.builder(PantryTelemetry.RECEIPT_LAST_PIPELINE_DURATION) { lastPipelineMillis.get() / MILLIS_PER_SECOND.toDouble() }
+            .baseUnit(SECONDS)
+            .register(registry)
+
+        Gauge.builder(PantryTelemetry.RECEIPT_LAST_POSITIONS) { lastPositions.get().toDouble() }
+            .register(registry)
+
+        lastStageMillis.forEach { (stage, millis) ->
+            Gauge.builder(PantryTelemetry.RECEIPT_LAST_STAGE_DURATION) { millis.get() / MILLIS_PER_SECOND.toDouble() }
+                .tag(PantryTelemetry.Tag.STAGE, stage)
+                .baseUnit(SECONDS)
+                .register(registry)
+        }
+    }
 
     fun recordStage(stage: String, outcome: String, nanos: Long) {
         histogramTimer(
@@ -24,6 +51,8 @@ class ReceiptPipelineMetrics(private val registry: MeterRegistry) {
             PantryTelemetry.Tag.STAGE, stage,
             PantryTelemetry.Tag.OUTCOME, outcome,
         ).increment()
+
+        lastStageMillis[stage]?.set(TimeUnit.NANOSECONDS.toMillis(nanos))
     }
 
     fun recordQueueAge(stage: String, publishedAtEpochMillis: Long?) {
@@ -37,6 +66,10 @@ class ReceiptPipelineMetrics(private val registry: MeterRegistry) {
     }
 
     fun recordPipeline(outcome: String, submittedAtEpochMillis: Long?) {
+        if (outcome == PantryTelemetry.Outcome.OK) {
+            lastSuccessEpochSeconds.set(System.currentTimeMillis() / MILLIS_PER_SECOND)
+        }
+
         val took = elapsedSince(submittedAtEpochMillis) ?: return
         histogramTimer(
             registry,
@@ -44,6 +77,10 @@ class ReceiptPipelineMetrics(private val registry: MeterRegistry) {
             PantryTelemetry.Buckets.PIPELINE,
             PantryTelemetry.Tag.OUTCOME, outcome,
         ).record(took, TimeUnit.MILLISECONDS)
+
+        if (outcome == PantryTelemetry.Outcome.OK) {
+            lastPipelineMillis.set(took)
+        }
     }
 
     fun recordPositions(count: Int) {
@@ -51,6 +88,8 @@ class ReceiptPipelineMetrics(private val registry: MeterRegistry) {
             .serviceLevelObjectives(*POSITION_BUCKETS)
             .register(registry)
             .record(count.toDouble())
+
+        lastPositions.set(count.toLong())
     }
 
     private fun elapsedSince(epochMillis: Long?): Long? {
@@ -59,6 +98,9 @@ class ReceiptPipelineMetrics(private val registry: MeterRegistry) {
     }
 
     companion object {
+        private const val SECONDS = "seconds"
+        private const val MILLIS_PER_SECOND = 1000L
         private val POSITION_BUCKETS = doubleArrayOf(1.0, 2.0, 5.0, 10.0, 20.0, 50.0, 100.0)
+        private val STAGES = listOf(PantryTelemetry.Stage.EXTRACT, PantryTelemetry.Stage.MATCH)
     }
 }
