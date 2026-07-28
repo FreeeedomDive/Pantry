@@ -4,6 +4,7 @@ import com.xdd.pantry.bootstrap.telegram.TelegramProperties
 import com.xdd.pantry.domain.users.TelegramUserId
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import org.junit.jupiter.api.Test
 import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.net.URLEncoder
@@ -15,7 +16,7 @@ import javax.crypto.spec.SecretKeySpec
 class TelegramInitDataAuthTest {
 
     private val botToken = "123456:test-bot-token"
-    private val auth = TelegramInitDataAuth(TelegramProperties(botToken), jacksonObjectMapper())
+    private val auth = TelegramInitDataAuth(TelegramProperties(botToken), jacksonObjectMapper(), SimpleMeterRegistry())
 
     @Test
     fun `accepts init data with a valid signature and extracts the user id`() {

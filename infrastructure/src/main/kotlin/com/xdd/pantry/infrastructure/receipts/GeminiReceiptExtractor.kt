@@ -4,6 +4,7 @@ import com.xdd.pantry.application.receipts.ReceiptExtractor
 import com.xdd.pantry.domain.receipts.ExtractedLine
 import com.xdd.pantry.domain.receipts.ExtractedReceipt
 import com.xdd.pantry.domain.receipts.ReceiptImage
+import com.xdd.pantry.infrastructure.telemetry.PantryTelemetry
 import org.springframework.stereotype.Component
 import tools.jackson.databind.ObjectMapper
 import tools.jackson.module.kotlin.readValue
@@ -19,7 +20,14 @@ class GeminiReceiptExtractor(
     override suspend fun extract(images: List<ReceiptImage>): ExtractedReceipt {
         if (images.isEmpty()) return ExtractedReceipt(emptyList())
         val parts = images.map { imagePart(it) } + mapOf<String, Any>("text" to PROMPT)
-        return parse(gemini.generateStructured(parts, SCHEMA, geminiProperties.extractorApiKey))
+        return parse(
+            gemini.generateStructured(
+                parts,
+                SCHEMA,
+                geminiProperties.extractorApiKey,
+                PantryTelemetry.Operation.EXTRACT,
+            ),
+        )
     }
 
     internal fun parse(json: String): ExtractedReceipt {

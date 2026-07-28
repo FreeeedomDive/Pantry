@@ -22,6 +22,19 @@ gemini:
   extractor-api-key: e2e-dummy-key
   base-url: http://127.0.0.1:9
 
+management:
+  otlp:
+    metrics:
+      export:
+        enabled: false
+  tracing:
+    export:
+      enabled: false
+  logging:
+    export:
+      otlp:
+        enabled: false
+
 telegram:
   bot-token: "123456:e2e-test-token"
   bot-username: pantry_e2e

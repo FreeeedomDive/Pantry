@@ -11,6 +11,14 @@ class ReceiptMatchingQueueAdapter(
     private val publisher: ReceiptPublisher,
 ) : ReceiptMatchingQueue {
     override fun requestMatching(draftId: DraftId, pantryId: PantryId, telegramUserId: TelegramUserId, chatId: Long) {
-        publisher.publishExtracted(ReceiptExtracted(telegramUserId.value, chatId, pantryId.value, draftId.value))
+        publisher.publishExtracted(
+            ReceiptExtracted(
+                telegramUserId = telegramUserId.value,
+                chatId = chatId,
+                pantryId = pantryId.value,
+                draftId = draftId.value,
+                extractedAtEpochMillis = System.currentTimeMillis(),
+            ),
+        )
     }
 }

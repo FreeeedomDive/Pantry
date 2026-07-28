@@ -19,3 +19,27 @@ spring:
           enabled: true
           initial-interval: 3s
           max-retries: 3
+        observation-enabled: true
+    template:
+      observation-enabled: true
+
+management:
+  otlp:
+    metrics:
+      export:
+        url: ${OTEL_EXPORTER_OTLP_ENDPOINT:http://localhost:4318}/v1/metrics
+        aggregation-temporality: cumulative
+        base-time-unit: seconds
+        step: 60s
+  opentelemetry:
+    tracing:
+      export:
+        otlp:
+          endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:http://localhost:4318}/v1/traces
+    logging:
+      export:
+        otlp:
+          endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:http://localhost:4318}/v1/logs
+  tracing:
+    sampling:
+      probability: 1.0

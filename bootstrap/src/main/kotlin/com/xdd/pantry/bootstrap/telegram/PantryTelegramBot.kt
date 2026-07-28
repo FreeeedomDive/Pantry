@@ -4,11 +4,15 @@ import com.xdd.pantry.application.pantries.AcceptInviteResult
 import com.xdd.pantry.application.pantries.AcceptPantryInviteUseCase
 import com.xdd.pantry.bootstrap.messaging.ReceiptPublisher
 import com.xdd.pantry.bootstrap.messaging.ReceiptSubmitted
+import com.xdd.pantry.bootstrap.observability.TelegramMetrics
 import com.xdd.pantry.domain.users.TelegramUserId
+import com.xdd.pantry.infrastructure.telemetry.PantryTelemetry
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import org.telegram.telegrambots.longpolling.util.LongPollingSingleThreadUpdateConsumer
 import org.telegram.telegrambots.meta.api.objects.Update
@@ -21,6 +25,7 @@ class PantryTelegramBot(
     private val sender: TelegramSender,
     private val receiptPublisher: ReceiptPublisher,
     private val acceptPantryInvite: AcceptPantryInviteUseCase,
+    private val metrics: TelegramMetrics,
 ) : LongPollingSingleThreadUpdateConsumer {
 
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
@@ -31,10 +36,24 @@ class PantryTelegramBot(
     }
 
     private suspend fun route(message: Message) {
-        when {
-            message.hasPhoto() -> onPhoto(message)
-            message.text?.startsWith("/start") == true -> onStart(message)
-            else -> sender.send(message.chatId, HINT_TEXT)
+        val type = when {
+            message.hasPhoto() -> PantryTelemetry.UpdateType.PHOTO
+            message.text?.startsWith("/start") == true -> PantryTelemetry.UpdateType.START
+            else -> PantryTelemetry.UpdateType.OTHER
+        }
+        try {
+            when (type) {
+                PantryTelemetry.UpdateType.PHOTO -> onPhoto(message)
+                PantryTelemetry.UpdateType.START -> onStart(message)
+                else -> sender.send(message.chatId, HINT_TEXT)
+            }
+            metrics.recordUpdate(type, PantryTelemetry.Outcome.OK)
+        } catch (cancellation: CancellationException) {
+            metrics.recordUpdate(type, PantryTelemetry.Outcome.CANCELLED)
+            throw cancellation
+        } catch (failure: Exception) {
+            metrics.recordUpdate(type, PantryTelemetry.Outcome.ERROR)
+            log.error("Failed to handle a {} update", type, failure)
         }
     }
 
@@ -61,11 +80,19 @@ class PantryTelegramBot(
     private fun submit(photos: List<Message>) {
         val first = photos.first()
         val fileIds = photos.map { message -> message.photo.maxBy { it.fileSize ?: 0 }.fileId }
-        receiptPublisher.publishSubmitted(ReceiptSubmitted(first.from.id, first.chatId, fileIds))
+        receiptPublisher.publishSubmitted(
+            ReceiptSubmitted(
+                telegramUserId = first.from.id,
+                chatId = first.chatId,
+                fileIds = fileIds,
+                submittedAtEpochMillis = System.currentTimeMillis(),
+            ),
+        )
         sender.send(first.chatId, "Распознаю товары в чеке…")
     }
 
     companion object {
+        private val log = LoggerFactory.getLogger(PantryTelegramBot::class.java)
         private val ALBUM_WINDOW = 1500.milliseconds
         private const val HINT_TEXT = "Пришли фото чека или скриншоты заказа — покажу, какие позиции я в них вижу"
         private val START_TEXT = """

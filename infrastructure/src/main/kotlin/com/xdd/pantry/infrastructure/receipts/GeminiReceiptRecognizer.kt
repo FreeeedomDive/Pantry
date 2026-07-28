@@ -8,6 +8,7 @@ import com.xdd.pantry.domain.receipts.ExtractedLine
 import com.xdd.pantry.domain.receipts.RecognizedAction
 import com.xdd.pantry.domain.receipts.RecognizedLine
 import com.xdd.pantry.domain.receipts.RecognizedReceipt
+import com.xdd.pantry.infrastructure.telemetry.PantryTelemetry
 import org.springframework.stereotype.Component
 import tools.jackson.databind.ObjectMapper
 import tools.jackson.module.kotlin.readValue
@@ -23,7 +24,14 @@ class GeminiReceiptRecognizer(
     override suspend fun recognize(lines: List<ExtractedLine>, catalog: List<Product>): RecognizedReceipt {
         if (lines.isEmpty()) return RecognizedReceipt(emptyList())
         val parts = listOf(mapOf<String, Any>("text" to buildPrompt(lines, catalog)))
-        return parse(gemini.generateStructured(parts, SCHEMA, geminiProperties.recognizerApiKey))
+        return parse(
+            gemini.generateStructured(
+                parts,
+                SCHEMA,
+                geminiProperties.recognizerApiKey,
+                PantryTelemetry.Operation.RECOGNIZE,
+            ),
+        )
     }
 
     internal fun parse(json: String): RecognizedReceipt {
