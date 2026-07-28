@@ -57,11 +57,8 @@ class GeminiClient(
         apiKey: String,
     ): GeminiResponse =
         geminiWebClient.post()
-            .uri { builder ->
-                builder.path("/v1beta/models/${properties.model}:generateContent")
-                    .queryParam("key", apiKey)
-                    .build()
-            }
+            .uri("/v1beta/models/{model}:generateContent", properties.model)
+            .header(API_KEY_HEADER, apiKey)
             .bodyValue(
                 mapOf(
                     "contents" to listOf(mapOf("parts" to parts)),
@@ -97,6 +94,7 @@ class GeminiClient(
 
     companion object {
         private val log = LoggerFactory.getLogger(GeminiClient::class.java)
+        private const val API_KEY_HEADER = "x-goog-api-key"
         private const val MAX_ATTEMPTS = 4
         private val RETRY_BACKOFF = 2.seconds
     }
