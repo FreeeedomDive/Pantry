@@ -2,6 +2,8 @@ package com.xdd.pantry.bootstrap.web
 
 import com.xdd.pantry.bootstrap.telegram.TelegramProperties
 import com.xdd.pantry.domain.users.TelegramUserId
+import com.xdd.pantry.infrastructure.telemetry.PantryTelemetry
+import io.micrometer.core.instrument.MeterRegistry
 import org.springframework.stereotype.Component
 import tools.jackson.databind.ObjectMapper
 import tools.jackson.module.kotlin.readValue
@@ -17,12 +19,17 @@ class InvalidInitDataException(message: String) : RuntimeException(message)
 class TelegramInitDataAuth(
     private val properties: TelegramProperties,
     private val objectMapper: ObjectMapper,
+    private val registry: MeterRegistry,
 ) {
     fun verify(initData: String): TelegramUserId {
-        val params = parse(initData)
-        val hash = params["hash"] ?: throw InvalidInitDataException("missing hash")
-        val authDate = params["auth_date"]?.toLongOrNull() ?: throw InvalidInitDataException("missing auth_date")
-        if (Instant.now().epochSecond - authDate > MAX_AGE_SECONDS) throw InvalidInitDataException("init data expired")
+        val params = runCatching { parse(initData) }
+            .getOrElse { reject(PantryTelemetry.AuthFailureReason.MALFORMED, "malformed init data") }
+        val hash = params["hash"] ?: reject(PantryTelemetry.AuthFailureReason.MISSING_HASH, "missing hash")
+        val authDate = params["auth_date"]?.toLongOrNull()
+            ?: reject(PantryTelemetry.AuthFailureReason.MISSING_AUTH_DATE, "missing auth_date")
+        if (Instant.now().epochSecond - authDate > MAX_AGE_SECONDS) {
+            reject(PantryTelemetry.AuthFailureReason.EXPIRED, "init data expired")
+        }
 
         val dataCheckString = params.filterKeys { it != "hash" }
             .toSortedMap()
@@ -30,10 +37,17 @@ class TelegramInitDataAuth(
             .joinToString("\n")
         val secretKey = hmac("WebAppData".toByteArray(), properties.botToken.toByteArray())
         val expectedHash = hmac(secretKey, dataCheckString.toByteArray()).toHex()
-        if (!expectedHash.equals(hash, ignoreCase = true)) throw InvalidInitDataException("bad signature")
+        if (!expectedHash.equals(hash, ignoreCase = true)) {
+            reject(PantryTelemetry.AuthFailureReason.BAD_SIGNATURE, "bad signature")
+        }
 
-        val userJson = params["user"] ?: throw InvalidInitDataException("missing user")
+        val userJson = params["user"] ?: reject(PantryTelemetry.AuthFailureReason.MISSING_USER, "missing user")
         return TelegramUserId(objectMapper.readValue<TelegramUser>(userJson).id)
+    }
+
+    private fun reject(reason: String, message: String): Nothing {
+        registry.counter(PantryTelemetry.AUTH_FAILURES, PantryTelemetry.Tag.REASON, reason).increment()
+        throw InvalidInitDataException(message)
     }
 
     private fun parse(initData: String): Map<String, String> =

@@ -7,4 +7,6 @@ data class ReceiptExtracted(
     val chatId: Long,
     val pantryId: UUID,
     val draftId: UUID,
+    val submittedAtEpochMillis: Long? = null,
+    val extractedAtEpochMillis: Long? = null,
 )

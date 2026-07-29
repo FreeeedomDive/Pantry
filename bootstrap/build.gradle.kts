@@ -19,6 +19,10 @@ dependencies {
     implementation(libs.telegrambots.longpolling)
     implementation(libs.telegrambots.client)
 
+    implementation(libs.spring.boot.starter.actuator)
+    implementation(libs.spring.boot.starter.opentelemetry)
+    implementation(libs.opentelemetry.logback.appender)
+
     developmentOnly(libs.spring.boot.docker.compose)
 
     testImplementation(libs.spring.boot.starter.test)

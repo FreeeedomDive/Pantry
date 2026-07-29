@@ -4,4 +4,5 @@ data class ReceiptSubmitted(
     val telegramUserId: Long,
     val chatId: Long,
     val fileIds: List<String>,
+    val submittedAtEpochMillis: Long? = null,
 )

@@ -12,9 +12,9 @@ import reactor.netty.http.client.HttpClient
 @EnableConfigurationProperties(GeminiProperties::class)
 class GeminiConfig {
     @Bean
-    fun geminiWebClient(properties: GeminiProperties): WebClient {
+    fun geminiWebClient(properties: GeminiProperties, builder: WebClient.Builder): WebClient {
         val httpClient = HttpClient.create().resolver(DefaultAddressResolverGroup.INSTANCE)
-        return WebClient.builder()
+        return builder
             .clientConnector(ReactorClientHttpConnector(httpClient))
             .baseUrl(properties.baseUrl)
             .build()
