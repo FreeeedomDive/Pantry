@@ -11,7 +11,8 @@ export class ApiError extends Error {
 
 export function describeApiError(error: unknown): string {
   if (error instanceof ApiError) {
-    if (error.status === 401) return 'Не удалось авторизоваться. Закройте и снова откройте приложение из Telegram.'
+    if (error.status === 401)
+      return 'Не удалось авторизоваться. Закройте и снова откройте приложение из Telegram.'
     if (error.status === 403) return 'Нет доступа к этому инвентарю.'
     return error.message
   }
