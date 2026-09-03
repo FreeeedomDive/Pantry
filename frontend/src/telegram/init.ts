@@ -1,8 +1,10 @@
 import { backButton, init, initData, miniApp, viewport } from '@telegram-apps/sdk-react'
+import { rememberInitData } from './initData'
 import { mockTelegramEnvForDev } from './mockEnv'
 
 export function initTelegram() {
   mockTelegramEnvForDev()
+  rememberInitData()
   try {
     init()
     initData.restore()

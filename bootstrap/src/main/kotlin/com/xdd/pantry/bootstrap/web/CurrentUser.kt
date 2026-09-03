@@ -31,10 +31,8 @@ class CurrentUserArgumentResolver(
         webRequest: NativeWebRequest,
         binderFactory: WebDataBinderFactory?,
     ): UUID {
-        val header = webRequest.getHeader(HttpHeaders.AUTHORIZATION)
-            ?: throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "Missing Authorization header")
         val telegramUserId = try {
-            auth.verify(header.removePrefix("tma").trim())
+            auth.verifyAuthorization(webRequest.getHeader(HttpHeaders.AUTHORIZATION))
         } catch (invalid: InvalidInitDataException) {
             throw ResponseStatusException(HttpStatus.UNAUTHORIZED, invalid.message)
         }

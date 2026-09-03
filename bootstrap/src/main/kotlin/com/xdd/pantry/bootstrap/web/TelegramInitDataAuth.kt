@@ -4,6 +4,7 @@ import com.xdd.pantry.bootstrap.telegram.TelegramProperties
 import com.xdd.pantry.domain.users.TelegramUserId
 import com.xdd.pantry.infrastructure.telemetry.PantryTelemetry
 import io.micrometer.core.instrument.MeterRegistry
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import tools.jackson.databind.ObjectMapper
 import tools.jackson.module.kotlin.readValue
@@ -21,6 +22,14 @@ class TelegramInitDataAuth(
     private val objectMapper: ObjectMapper,
     private val registry: MeterRegistry,
 ) {
+    fun verifyAuthorization(header: String?): TelegramUserId {
+        val initData = header?.removePrefix(SCHEME)?.trim()
+        if (initData.isNullOrEmpty()) {
+            reject(PantryTelemetry.AuthFailureReason.MISSING_HEADER, "missing Telegram init data")
+        }
+        return verify(initData)
+    }
+
     fun verify(initData: String): TelegramUserId {
         val params = runCatching { parse(initData) }
             .getOrElse { reject(PantryTelemetry.AuthFailureReason.MALFORMED, "malformed init data") }
@@ -47,6 +56,9 @@ class TelegramInitDataAuth(
 
     private fun reject(reason: String, message: String): Nothing {
         registry.counter(PantryTelemetry.AUTH_FAILURES, PantryTelemetry.Tag.REASON, reason).increment()
+        log.atWarn()
+            .addKeyValue("pantry.auth.failure_reason", reason)
+            .log("Telegram init data rejected: {}", reason)
         throw InvalidInitDataException(message)
     }
 
@@ -64,6 +76,8 @@ class TelegramInitDataAuth(
     private data class TelegramUser(val id: Long)
 
     companion object {
+        private const val SCHEME = "tma"
         private const val MAX_AGE_SECONDS = 86_400L
+        private val log = LoggerFactory.getLogger(TelegramInitDataAuth::class.java)
     }
 }
