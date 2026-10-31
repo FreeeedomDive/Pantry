@@ -78,6 +78,7 @@ object PantryTelemetry {
     }
 
     object AuthFailureReason {
+        const val MISSING_HEADER = "missing_header"
         const val MALFORMED = "malformed"
         const val MISSING_HASH = "missing_hash"
         const val MISSING_AUTH_DATE = "missing_auth_date"

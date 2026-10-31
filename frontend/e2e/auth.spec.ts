@@ -3,7 +3,7 @@ import type { PantryResponse } from '../src/api/types.js'
 import { expect, test } from './fixtures.js'
 import { createE2eInitData } from './telegram.js'
 
-const AUTHORIZATION_ERROR = 'Не удалось авторизоваться. Откройте приложение из Telegram.'
+const AUTHORIZATION_ERROR = 'Не удалось авторизоваться. Закройте и снова откройте приложение из Telegram.'
 
 function setRuntimeInitData(runtimeInitData: string) {
   window.__PANTRY_E2E_TELEGRAM_INIT_DATA__ = runtimeInitData

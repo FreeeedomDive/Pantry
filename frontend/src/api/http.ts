@@ -1,4 +1,4 @@
-import { retrieveRawInitData } from '@telegram-apps/sdk-react'
+import { currentInitData } from '../telegram/initData'
 
 export class ApiError extends Error {
   readonly status: number
@@ -11,19 +11,12 @@ export class ApiError extends Error {
 
 export function describeApiError(error: unknown): string {
   if (error instanceof ApiError) {
-    if (error.status === 401) return 'Не удалось авторизоваться. Откройте приложение из Telegram.'
+    if (error.status === 401)
+      return 'Не удалось авторизоваться. Закройте и снова откройте приложение из Telegram.'
     if (error.status === 403) return 'Нет доступа к этому инвентарю.'
     return error.message
   }
   return 'Не удалось выполнить запрос. Проверьте соединение.'
-}
-
-function rawInitData(): string | undefined {
-  try {
-    return retrieveRawInitData()
-  } catch {
-    return undefined
-  }
 }
 
 async function errorMessage(response: Response): Promise<string> {
@@ -40,7 +33,7 @@ async function errorMessage(response: Response): Promise<string> {
 }
 
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
-  const initData = rawInitData()
+  const initData = currentInitData()
   const headers = new Headers(init.headers)
   if (initData) headers.set('Authorization', `tma ${initData}`)
   if (init.body) headers.set('Content-Type', 'application/json')

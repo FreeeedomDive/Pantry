@@ -40,6 +40,18 @@ class TelegramInitDataAuthTest {
         shouldThrow<InvalidInitDataException> { auth.verify(stale) }
     }
 
+    @Test
+    fun `accepts an authorization header carrying the tma scheme`() {
+        val initData = signedInitData(userId = 42, authDate = Instant.now().epochSecond)
+
+        auth.verifyAuthorization("tma $initData") shouldBe TelegramUserId(42)
+    }
+
+    @Test
+    fun `rejects a missing authorization header`() {
+        shouldThrow<InvalidInitDataException> { auth.verifyAuthorization(null) }
+    }
+
     private fun signedInitData(userId: Long, authDate: Long): String {
         val fields = mapOf(
             "auth_date" to authDate.toString(),
